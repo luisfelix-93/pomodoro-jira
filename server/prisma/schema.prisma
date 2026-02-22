@@ -11,11 +11,15 @@ datasource db {
 }
 
 model UserConfig {
-  id        Int      @id @default(autoincrement())
-  jiraDomain String
-  apiToken  String
-  email     String
-  accountId String
+  id             Int       @id @default(autoincrement())
+  jiraDomain     String?
+  apiToken       String?
+  email          String?
+  accountId      String?
+  accessToken    String?
+  refreshToken   String?
+  cloudId        String?
+  tokenExpiresAt DateTime?
 }
 
 model Task {
