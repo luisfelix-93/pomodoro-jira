@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassPanel } from '@/components/ui/GlassPanel';
 import { OrbitButton } from '@/components/ui/OrbitButton';
 import { StarField } from '@/components/layout/StarField';
-import { Rocket, Key, Globe, Mail } from 'lucide-react';
+import { Rocket } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export function LoginGate() {
@@ -55,7 +55,7 @@ export function LoginGate() {
       </GlassPanel>
       
       <div className="absolute bottom-4 flex flex-col items-center gap-1 text-white/20 text-xs hover:text-white/40 transition-colors">
-        <span>v0.0.1 • FocusApp</span>
+        <span>v0.0.2 • FocusApp</span>
         <a 
           href="https://github.com/luisfelix-93/pomerode-jira/blob/main/docs/PRIVACY.md" 
           target="_blank" 
