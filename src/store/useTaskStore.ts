@@ -35,7 +35,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   setActiveTask: (issueId) => set({ activeTaskId: issueId }),
 
   // Fetch tasks with optional filters
-  fetchTasks: async (excludeStatus: string[] = ['Done', 'Resolved', 'Closed', 'Concluído']) => {
+  fetchTasks: async (excludeStatus: string[] = ['Done', 'Resolvido', 'Closed', 'Concluído', 'Homologação']) => {
     set({ isLoading: true });
     try {
         // Syncs with Jira and returns updated list

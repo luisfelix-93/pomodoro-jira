@@ -8,33 +8,37 @@ export function usePomodoro() {
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (isRunning && (mode === 'STOPWATCH' || timeLeft > 0)) {
+    if (isRunning) {
+      // Just run the tick every 1000ms. 
+      // The tick() function inside useTimerStore will handle checking 
+      // if time is up, or if absolute time elapsed has skipped forward.
       interval = setInterval(() => {
         tick();
       }, 1000);
-      
-      // Focus Mode checks
-      if (mode === 'STOPWATCH' && timeElapsed > 0) {
-        // 8-hour hard limit check
+    }
+    // Focus Mode checks run on state changes, NOT inside the interval creation block
+    // We check this separately whenever timeElapsed changes.
+    return () => clearInterval(interval);
+  }, [isRunning, tick]);
+
+  useEffect(() => {
+     if (isRunning && mode === 'STOPWATCH' && timeElapsed > 0) {
         if (timeElapsed >= 8 * 3600) {
             pause();
             new Notification("Focus Limit Reached", { body: "You've been focusing for 8 hours. Time to take a long break!" });
         }
-        // 1-hour activity notification check
         else if (timeElapsed % 3600 === 0) {
             new Notification("Still focusing?", { body: `You've been working for ${timeElapsed / 3600} hour(s).` });
         }
-      }
+     }
+  }, [timeElapsed, mode, isRunning, pause]);
 
-    } else if (timeLeft === 0 && isRunning && mode !== 'STOPWATCH') {
-        // Pomodoro Timer finished
+  useEffect(() => {
+     if (isRunning && mode !== 'STOPWATCH' && timeLeft === 0) {
         stop();
-        // Here we would trigger notification and sound
         new Notification("Pomodoro Finished!", { body: `Time for a ${mode === 'FOCUS' ? 'break' : 'focus session'}.` });
-    }
-
-    return () => clearInterval(interval);
-  }, [isRunning, timeLeft, timeElapsed, tick, stop, pause, mode]);
+     }
+  }, [timeLeft, mode, isRunning, stop]);
 
   return {
     formatTime: (seconds: number) => {

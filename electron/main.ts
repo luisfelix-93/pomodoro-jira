@@ -1,9 +1,10 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import fs from 'fs';
 
 let mainWindow: BrowserWindow | null = null;
+let miniWindow: BrowserWindow | null = null;
 let serverProcess: ChildProcess | null = null;
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -12,6 +13,59 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
+        minWidth: 900,
+        minHeight: 600,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: false,
+            contextIsolation: true,
+            backgroundThrottling: false,
+        },
+    });
+
+    if (isDev) {
+        mainWindow.loadURL('http://localhost:5173');
+        // mainWindow.webContents.openDevTools();
+    } else {
+        mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    }
+
+    mainWindow.on('minimize', () => {
+        // We will check if a timer is running via IPC before creating, or we can just emit an event to the renderer.
+        // Actually, the renderer should tell the main process if a timer is active, but a simpler way 
+        // is to let the renderer send an IPCC message 'window-minimized' when it detects window blur/minimize.
+        // However, mainWindow.on('minimize') is perfectly reliable.
+        mainWindow?.webContents.send('window-minimized');
+    });
+
+    mainWindow.on('restore', () => {
+        mainWindow?.webContents.send('window-restored');
+        if (miniWindow && !miniWindow.isDestroyed()) {
+            miniWindow.close();
+            miniWindow = null;
+        }
+    });
+}
+
+function createMiniWindow() {
+    if (miniWindow && !miniWindow.isDestroyed()) {
+        miniWindow.focus();
+        return;
+    }
+
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workAreaSize;
+
+    miniWindow = new BrowserWindow({
+        width: 300,
+        height: 120,
+        x: width - 320, // Bottom right corner
+        y: height - 140,
+        frame: false,
+        alwaysOnTop: true,
+        transparent: true,
+        resizable: false,
+        hasShadow: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -20,11 +74,13 @@ function createWindow() {
     });
 
     if (isDev) {
-        mainWindow.loadURL('http://localhost:5173');
-        mainWindow.webContents.openDevTools();
+        miniWindow.loadURL('http://localhost:5173/#/mini');
     } else {
-        mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+        // Electron loads the index.html and then react-router handles the hash
+        miniWindow.loadURL(`file://${path.join(__dirname, '../dist/index.html')}#/mini`);
     }
+
+    // Pass the current state immediately if possible, but the mini window will request it when it mounts
 }
 
 function startServer() {
@@ -80,11 +136,40 @@ function startServer() {
     });
 }
 
-app.whenReady().then(() => {
+    app.whenReady().then(() => {
     startServer();
     createWindow();
 
     ipcMain.handle('ping', () => 'pong');
+
+    // Mini Timer IPC
+    ipcMain.on('create-mini-window', () => {
+        createMiniWindow();
+    });
+
+    ipcMain.on('sync-state-to-mini', (_event, state) => {
+        if (miniWindow && !miniWindow.isDestroyed()) {
+            miniWindow.webContents.send('state-synced', state);
+        }
+    });
+
+    ipcMain.on('timer-action-from-mini', (_event, action) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('timer-action', action);
+        }
+    });
+
+    ipcMain.on('expand-main-window', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.show();
+            mainWindow.focus();
+        }
+        if (miniWindow && !miniWindow.isDestroyed()) {
+            miniWindow.close();
+            miniWindow = null;
+        }
+    });
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
