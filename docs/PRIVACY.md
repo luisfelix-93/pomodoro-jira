@@ -86,4 +86,4 @@ Any changes to this privacy policy will be reflected in updated releases of the 
 
 ## 10. Contact
 
-If you have any questions about this privacy policy, please open an issue in the [project's GitHub repository](https://github.com/luisfelix-93/pomerode-jira).
+If you have any questions about this privacy policy, please open an issue in the [project's GitHub repository](https://github.com/luisfelix-93/pomodoro-jira).
