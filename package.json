@@ -1,6 +1,6 @@
 {
   "name": "pomerode-jira",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\" \"npm run dev:electron\"",

@@ -5,6 +5,8 @@ A desktop productivity tool integrating the Pomodoro technique with Jira time tr
 ## Features
 
 - **Pomodoro Timer**: Customizable timer for work and break intervals.
+- **Focus Void**: Extended stopwatch mode for uninterrupted, open-ended work sessions.
+- **Mini Timer Window**: Keep track of your active tasks with a non-intrusive desktop widget.
 - **Jira Integration**: Syncing worklogs directly to Jira issues with robust **Atlassian OAuth 2.0** secure authentication.
 - **Task Management**: View and manage your Jira tasks within the app.
 - **Cross-Platform**: Available for Windows, macOS, and Linux.
