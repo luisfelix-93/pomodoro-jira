@@ -1,0 +1,21 @@
+appId: com.luisf.pomerode-jira
+productName: FocusApp
+directories:
+  output: release
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+extraResources:
+  - server/dist/**/*
+  - server/package.json
+  - server/prisma/**/*
+  - server/node_modules/**/*
+  - server/seed.sqlite
+win:
+  target: nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+asarUnpack:
+  - "**/*.node"

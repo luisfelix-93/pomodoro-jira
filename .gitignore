@@ -1,0 +1,38 @@
+# Node
+node_modules/
+dist/
+build/
+release/
+.env
+.env.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Electron
+dist-electron/
+release/
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database
+*.sqlite
+*.db
+!seed.sqlite
+
+# DOCUMENTAÇÃO
+*.specs.md
+PLAN-*.md
+
+
+#Agentes
+.agent/
+.claude/

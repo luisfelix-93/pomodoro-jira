@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" 
+  url      = env("DATABASE_URL")
+}
+
+model UserConfig {
+  id        Int      @id @default(autoincrement())
+  jiraDomain String
+  apiToken  String
+  email     String
+  accountId String
+}
+
+model Task {
+  id          String   @id
+  summary     String
+  status      String
+  projectKey  String
+  priorityUrl String?
+  updatedAt   DateTime @updatedAt
+  worklogs    Worklog[]
+}
+
+model Worklog {
+  id              String   @id @default(uuid())
+  issueKey        String
+  startTime       DateTime
+  durationSeconds Int
+  comment         String?
+  verificationStatus String // PENDING, SYNCED, FAILED
+  jiraWorklogId   String?
+  task            Task     @relation(fields: [issueKey], references: [id])
+}
