@@ -55,9 +55,9 @@ export function LoginGate() {
       </GlassPanel>
       
       <div className="absolute bottom-4 flex flex-col items-center gap-1 text-white/20 text-xs hover:text-white/40 transition-colors">
-        <span>v0.0.2 • FocusApp</span>
+        <span>v0.0.3 • FocusApp</span>
         <a 
-          href="https://github.com/luisfelix-93/pomerode-jira/blob/main/docs/PRIVACY.md" 
+          href="https://github.com/luisfelix-93/pomodoro-jira/blob/main/docs/PRIVACY.md" 
           target="_blank" 
           rel="noreferrer"
           className="underline hover:text-white/60 transition-colors"

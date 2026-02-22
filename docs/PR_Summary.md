@@ -1,18 +1,18 @@
-# Pull Request Summary
+## PR Summary: Pomodoro Timer Enhancements 🚀
 
-## 🎯 Objetivos
-Este Pull Request implementa a migração da aplicação para a autenticação OAuth 2.0 da Atlassian e introduz melhorias no fluxo do repositório (automação de CI/CD).
+This PR introduces major enhancements to the task management and timer experience, specifically aimed at improving focus, tracking accuracy, and application usability. These updates include the much-anticipated Extended Focus Mode ("Modo de Foco Prolongado") and a new Mini Timer for a less intrusive desktop experience.
 
-## 📝 Resumo das Alterações
+### Key Features & Updates ✨
 
-### 1. Login via OAuth 2.0 do Jira (`cea5546`)
-- **Login Unificado & Moderno:** O formulário de login anterior (`LoginGate.tsx`) que exigia domínio, email e token da API foi substituído por um fluxo moderno contendo um único botão **"Login with Atlassian"** e a versão incrementada para v0.0.2.
-- **Segurança Reforçada (Backend Proxy):** A autenticação agora utiliza o servidor local atuando como intermediário transparente da Atlassian, melhorando estruturalmente a segurança sem exposição direta de tokens brutos no cliente.
-- **Refatoração do Estado de Autenticação:** Refatoração completa no Zustand (`useAuthStore.ts`) e no serviço web (`api/jira.ts`) abandonando o persistimento local explícito de credenciais confidenciais, checando sessões via API (`checkAuth`) e suportando desconexão segura (`logout`).
+- **Extended Focus Mode (Focus Void):** Introduced a new chronological stopwatch mode in `FocusVoid.tsx` tailored for uninterrupted, open-ended work sessions, bypassing the standard Pomodoro countdown logic.
+- **Mini Timer Window:** Added a minimalist `MiniTimer.tsx` floating window for electron, allowing users to keep track of their active tasks without having the main application window open.
+- **Sleep/Wake Event Handling Enhancements:** Improved timer reliability in `useTimerStore.ts` and electron files (`main.ts`, `preload.ts`) to maintain accurate time tracking when the OS enters or resumes from sleep state. 
+- **Project Structure & Tooling:** 
+  - Added a new `docs/roadmap.md` file to outline future development plans.
+  - Added GitHub Issue Templates (`bug_report.md`, `feature_request.md`, `custom.md`) to standardize community feedback and reporting.
 
-### 2. Fluxo de Pull Request Automático (`1071da9`)
-- **Action de CI (`create-pr.yml`):** Adicionado um workflow automatizado em GitHub Actions para gerar Pull Requests. A cada push em branches fora da rota principal (ignorando `main` e `master`), é executado o workflow.
-- **Padronização:** Condição em tempo real checa via GitHub CLI (`gh pr list`) se o PR já existe, se não, preenche o corpo do Pull Request automaticamente com o conteúdo consolidado deste documento (`docs/PR_Summary.md`), promovendo transparência nos merges.
+### Technical Details 🛠
 
-## 🚀 Impactos e Próximos Passos
-O impacto dessas alterações melhora de forma drástica a usabilidade (o usuário não precisa mais entrar no painel da Atlassian, gerar tokens para autenticar). Ao mesmo tempo, eleva o padrão de desenvolvimento para o repositório, garantindo que propostas de código na formatação padrão sejam agrupadas por meio de PRs.
+- Refactored `usePomodoro.ts` and `useTimerStore.ts` to properly handle state separation between `STOPWATCH` (Focus Void) and `POMODORO` countdown modes.
+- Added IPC handles in Electron's `main.ts` and `preload.ts` to spawn and manage the new Mini Timer window.
+- Updated typing declarations (`src/vite-env.d.ts`) to accommodate new Electron APIs.
