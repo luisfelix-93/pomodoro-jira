@@ -39,7 +39,7 @@ export function TaskOrbit() {
                 <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Sync Jira
              </OrbitButton>
-             <OrbitButton size="sm" variant="danger" onClick={() => { logout(); navigate('/'); }}>Logout</OrbitButton>
+             <OrbitButton size="sm" variant="danger" onClick={async () => { await logout(); navigate('/'); }}>Logout</OrbitButton>
         </div>
       </div>
       

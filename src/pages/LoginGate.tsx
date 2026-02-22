@@ -1,22 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassPanel } from '@/components/ui/GlassPanel';
 import { OrbitButton } from '@/components/ui/OrbitButton';
 import { StarField } from '@/components/layout/StarField';
-import { Rocket, Key, Globe, Mail } from 'lucide-react';
+import { Rocket } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export function LoginGate() {
   const navigate = useNavigate();
-  const { login, isLoading, error, isAuthenticated } = useAuthStore();
-  const [domain, setDomain] = useState('');
-  const [email, setEmail] = useState('');
-  const [token, setToken] = useState('');
+  const { checkAuth, isLoading, error, isAuthenticated } = useAuthStore();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await login(domain, email, token);
+  const handleLogin = () => {
+    // Redirect to backend OAuth route
+    window.location.href = 'http://localhost:3001/api/auth/login';
   };
+
+  useEffect(() => {
+    // Check if we already have a backend session on mount
+    checkAuth();
+  }, [checkAuth]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -45,57 +47,23 @@ export function LoginGate() {
             </div>
         )}
 
-        <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white/80 flex items-center gap-2">
-              <Globe className="w-4 h-4" /> Jira Domain
-            </label>
-            <input 
-              type="text" 
-              placeholder="company.atlassian.net"
-              className="w-full bg-space-black/50 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-orbit-orange transition-colors"
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-             <label className="text-sm font-medium text-white/80 flex items-center gap-2">
-              <Mail className="w-4 h-4" /> Email Address
-            </label>
-             <input 
-              type="email" 
-              placeholder="you@company.com"
-              className="w-full bg-space-black/50 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-orbit-orange transition-colors"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white/80 flex items-center gap-2">
-              <Key className="w-4 h-4" /> API Token
-            </label>
-            <input 
-              type="password" 
-              placeholder="••••••••••••••••"
-              className="w-full bg-space-black/50 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-orbit-orange transition-colors"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              required
-            />
-          </div>
-
-          <OrbitButton type="submit" disabled={isLoading} className="mt-2 w-full text-white font-bold">
-            {isLoading ? 'Connecting...' : 'Connect to Jira'}
+        <div className="w-full flex flex-col gap-4">
+          <OrbitButton onClick={handleLogin} disabled={isLoading} className="mt-2 w-full text-white font-bold h-12">
+            {isLoading ? 'Checking session...' : 'Login with Atlassian'}
           </OrbitButton>
-        </form>
+        </div>
       </GlassPanel>
       
-      <div className="absolute bottom-4 text-white/20 text-xs">
-        v0.0.1 • FocusApp
+      <div className="absolute bottom-4 flex flex-col items-center gap-1 text-white/20 text-xs hover:text-white/40 transition-colors">
+        <span>v0.0.2 • FocusApp</span>
+        <a 
+          href="https://github.com/luisfelix-93/pomerode-jira/blob/main/docs/PRIVACY.md" 
+          target="_blank" 
+          rel="noreferrer"
+          className="underline hover:text-white/60 transition-colors"
+        >
+          Privacy Policy
+        </a>
       </div>
     </div>
   );

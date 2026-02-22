@@ -1,84 +1,66 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { JiraUser } from '@/types';
 import { jiraApi } from '@/services/api/jira';
 
 interface AuthState {
   isAuthenticated: boolean;
-  domain: string;
-  email: string;
-  token: string | null;
-  user: JiraUser | null;
+  domain: string | null;
+  user: any | null;
   isLoading: boolean;
   error: string | null;
   
-  login: (domain: string, email: string, token: string) => Promise<void>;
-  logout: () => void;
-  setUser: (user: JiraUser) => void;
+  checkAuth: () => Promise<void>;
+  logout: () => Promise<void>;
+  setUser: (user: any) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set: any) => ({
+    (set) => ({
       isAuthenticated: false,
-      domain: '',
-      email: '',
-      token: null,
+      domain: null,
       user: null,
-      isLoading: false,
+      isLoading: true, // Start true while we check session
       error: null,
 
-      login: async (domain, email, token) => {
+      checkAuth: async () => {
         set({ isLoading: true, error: null });
         try {
-            // update state first 
-            set({ domain, email, token });
-            
-            // verify credentials via Backend Proxy
-            try {
-                const response = await jiraApi.login(domain, email, token);
-                
-                if (response.success) {
-                    set({ 
-                        isAuthenticated: true, 
-                        user: { 
-                            accountId: response.user.accountId, 
-                            displayName: response.user.displayName,
-                            email: email,
-                            active: true,
-                            avatarUrls: {} as any
-                        },
-                        isLoading: false
-                    });
-                } else {
-                    throw new Error('Login failed');
-                }
-            } catch (apiError: any) {
-                // If API fails, revert sensitive state
+            const response = await jiraApi.getStatus();
+            if (response.isAuthenticated) {
                 set({ 
-                    isAuthenticated: false, 
-                    token: null, 
-                    user: null,
-                    error: apiError.response?.data?.error || 'Authentication failed. Please check your credentials.'
+                    isAuthenticated: true, 
+                    domain: response.user?.domain,
+                    user: response.user,
+                    isLoading: false
                 });
-                set({ isLoading: false }); 
+            } else {
+                set({ isAuthenticated: false, isLoading: false, domain: null, user: null });
             }
         } catch (error) {
-            set({ error: 'An unexpected error occurred', isLoading: false });
+            console.error('Check auth error:', error);
+            set({ isAuthenticated: false, isLoading: false, error: 'Could not verify session' });
         }
       },
 
-      logout: () => set({ 
-        isAuthenticated: false, 
-        token: null, 
-        user: null 
-      }),
+      logout: async () => {
+        try {
+          await jiraApi.logout();
+        } catch (error) {
+          console.error('Backend logout failed:', error);
+        }
+        set({ 
+          isAuthenticated: false, 
+          domain: null,
+          user: null 
+        });
+      },
 
       setUser: (user) => set({ user }),
     }),
     {
       name: 'auth-storage',
-      partialize: (state: AuthState) => ({ domain: state.domain, email: state.email }) as any, 
+      partialize: (state: AuthState) => ({ domain: state.domain }) as any, 
     }
-  ) as any
+  ) 
 );

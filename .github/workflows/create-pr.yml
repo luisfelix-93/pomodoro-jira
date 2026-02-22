@@ -1,0 +1,53 @@
+name: Auto Create Pull Request
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - master
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check if Pull Request exists
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          count=$(gh pr list \
+            --repo ${{ github.repository }} \
+            --head ${{ github.ref_name }} \
+            --base main \
+            --json number \
+            --jq 'length')
+            
+          echo "count=$count" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check.outputs.count == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f "docs/PR_Summary.md" ]; then
+            gh pr create \
+              --repo ${{ github.repository }} \
+              --base main \
+              --head ${{ github.ref_name }} \
+              --title "Merge ${{ github.ref_name }} into main" \
+              --body-file docs/PR_Summary.md
+          else
+            gh pr create \
+              --repo ${{ github.repository }} \
+              --base main \
+              --head ${{ github.ref_name }} \
+              --title "Merge ${{ github.ref_name }} into main" \
+              --body "PR automático da branch ${{ github.ref_name }}"
+          fi

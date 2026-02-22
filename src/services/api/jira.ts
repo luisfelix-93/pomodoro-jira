@@ -22,6 +22,12 @@ export const jiraApi = {
     return response.data;
   },
 
+  // Logout from local backend session
+  logout: async () => {
+    const response = await apiClient.post('/auth/logout');
+    return response.data;
+  },
+
   // Tasks now fetched from local DB (which syncs with Jira)
   getTasks: async (excludeStatus?: string[]) => {
     const params = excludeStatus ? { excludeStatus: excludeStatus.join(',') } : {};

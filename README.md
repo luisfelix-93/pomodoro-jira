@@ -5,7 +5,7 @@ A desktop productivity tool integrating the Pomodoro technique with Jira time tr
 ## Features
 
 - **Pomodoro Timer**: Customizable timer for work and break intervals.
-- **Jira Integration**: syncing worklogs directly to Jira issues.
+- **Jira Integration**: Syncing worklogs directly to Jira issues with robust **Atlassian OAuth 2.0** secure authentication.
 - **Task Management**: View and manage your Jira tasks within the app.
 - **Cross-Platform**: Available for Windows, macOS, and Linux.
 
@@ -70,3 +70,7 @@ To create a distributable installer for your platform:
   ```
 
 The build artifacts will be located in the `release/` directory.
+
+## Privacy Policy
+
+FocusApp operates completely locally and does not collect or transmit your personal data to our servers. Review the full [Privacy Policy](docs/PRIVACY.md) for details on how your Jira integration data and authentication tokens are securely handled locally on your device.

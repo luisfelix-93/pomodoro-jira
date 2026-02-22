@@ -59,7 +59,9 @@ export class WorklogController {
         const jira = new JiraClient({ 
             domain: config.jiraDomain, 
             email: config.email, 
-            apiToken: config.apiToken 
+            apiToken: config.apiToken,
+            accessToken: config.accessToken,
+            cloudId: config.cloudId
         });
 
         // 3. Push to Jira (Sequential for now to avoid rate limits/race)

@@ -1,36 +1,42 @@
 import axios, { AxiosInstance } from 'axios';
 
 export interface JiraCredentials {
-  domain: string;
-  email: string;
-  apiToken: string;
+  domain?: string | null;
+  email?: string | null;
+  apiToken?: string | null;
+  accessToken?: string | null;
+  cloudId?: string | null;
 }
 
 export class JiraClient {
   private axiosInstance: AxiosInstance;
 
   constructor(private credentials: JiraCredentials) {
-    // Sanitize domain: remove protocol, paths, and ensure it's just the subdomain or full domain
-    let cleanDomain = credentials.domain.trim();
-    
-    // Remove protocol
-    cleanDomain = cleanDomain.replace(/^https?:\/\//, '');
-    
-    // Remove paths
-    cleanDomain = cleanDomain.split('/')[0];
-    
-    // Remove .atlassian.net suffix if present (we add it back)
-    cleanDomain = cleanDomain.replace(/\.atlassian\.net$/, '');
-      
-    const baseURL = `https://${cleanDomain}.atlassian.net/rest/api/3`;
-    const auth = Buffer.from(`${credentials.email}:${credentials.apiToken}`).toString('base64');
-      
+    let baseURL = '';
+    let authHeader = '';
+
+    if (credentials.accessToken && credentials.cloudId) {
+      baseURL = `https://api.atlassian.com/ex/jira/${credentials.cloudId}/rest/api/3`;
+      authHeader = `Bearer ${credentials.accessToken}`;
+    } else if (credentials.domain && credentials.email && credentials.apiToken) {
+      let cleanDomain = credentials.domain.trim();
+      cleanDomain = cleanDomain.replace(/^https?:\/\//, '');
+      cleanDomain = cleanDomain.split('/')[0];
+      cleanDomain = cleanDomain.replace(/\.atlassian\.net$/, '');
+        
+      baseURL = `https://${cleanDomain}.atlassian.net/rest/api/3`;
+      const auth = Buffer.from(`${credentials.email}:${credentials.apiToken}`).toString('base64');
+      authHeader = `Basic ${auth}`;
+    } else {
+      throw new Error("Invalid Jira credentials provided");
+    }
+
     console.log('🔗 Jira Client BaseURL:', baseURL); // Debug log
 
     this.axiosInstance = axios.create({
       baseURL,
       headers: {
-        'Authorization': `Basic ${auth}`,
+        'Authorization': authHeader,
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
