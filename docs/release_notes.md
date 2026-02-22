@@ -1,15 +1,12 @@
 # Release Notes
 
-## 🚀 v0.0.2 (Integração OAuth 2.0 e Workflow Automático)
+## 🛠️ v0.0.3 (Correção do Pipeline de CI/CD para Releases)
 
 **Data:** 22 de Fevereiro de 2026
 
-Nesta versão, focamos fortemente em maximizar a segurança, usabilidade de login e na agilidade dos nossos processos internos de código.
+Nesta versão, focamos em estabilizar o processo de build e release no GitHub Actions, garantindo que os artefatos do aplicativo sejam gerados e publicados corretamente na página de releases.
 
-### ✨ Novidades
-- **Autenticação Atlassian OAuth 2.0:** O Login que antes baseava-se na inserção manual de token de usuário (Basic Auth) foi inteiramente refeito. Agora utilizamos o fluxo seguro oficial OAuth 2.0 do Jira, unificando a experiência através do botão transparente **"Login with Atlassian"**.
-- **Novo Workflow de GitHub Actions:** Criação do pipeline `create-pr` para gerar Pull Requests automaticamente ao subir uma branch nova à nuvem, reduzindo a fricção e burocracia do versionamento.
-- **Estado de Sessão Modernizado:** Adaptações profundas da lógica base (`TaskOrbit` e `LoginGate`) migrada inteiramente para comunicação síncrona com o proxy e segurança orientada aos fluxos mais consolidados da internet.
+### 🐛 Correções de Bugs
+- **Falha no Upload de Artefatos:** Corrigido um problema onde o `electron-builder` interrompia o processo e falhava a compilação por tentar realizar a publicação automática dos artefatos (ex: `.exe`, `.AppImage`, `.snap`) sem um token de acesso configurado. O processo agora ignora a publicação automática e delega corretamente para a etapa final do próprio GitHub Actions, garantindo lançamentos estáveis na nuvem.
 
 ---
-

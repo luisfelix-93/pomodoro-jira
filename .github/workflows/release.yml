@@ -84,13 +84,16 @@ jobs:
       - name: Build and Upload Artifacts
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            npm run build:win
+            npm run build:win -- -p never
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            npm run build:mac
+            npm run build:mac -- -p never
           else
-            npm run build:linux
+            npm run build:linux -- -p never
           fi
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2

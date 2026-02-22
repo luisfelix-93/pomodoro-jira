@@ -1,18 +1,13 @@
-## PR Summary: Pomodoro Timer Enhancements 🚀
+## PR Summary: CI/CD Release Fix 🛠️
 
-This PR introduces major enhancements to the task management and timer experience, specifically aimed at improving focus, tracking accuracy, and application usability. These updates include the much-anticipated Extended Focus Mode ("Modo de Foco Prolongado") and a new Mini Timer for a less intrusive desktop experience.
+This PR addresses and resolves a critical pipeline failure in the GitHub Actions `release.yml` workflow, specifically in the step that builds and uploads the electron application artifacts.
 
-### Key Features & Updates ✨
+### Key Changes ✨
 
-- **Extended Focus Mode (Focus Void):** Introduced a new chronological stopwatch mode in `FocusVoid.tsx` tailored for uninterrupted, open-ended work sessions, bypassing the standard Pomodoro countdown logic.
-- **Mini Timer Window:** Added a minimalist `MiniTimer.tsx` floating window for electron, allowing users to keep track of their active tasks without having the main application window open.
-- **Sleep/Wake Event Handling Enhancements:** Improved timer reliability in `useTimerStore.ts` and electron files (`main.ts`, `preload.ts`) to maintain accurate time tracking when the OS enters or resumes from sleep state. 
-- **Project Structure & Tooling:** 
-  - Added a new `docs/roadmap.md` file to outline future development plans.
-  - Added GitHub Issue Templates (`bug_report.md`, `feature_request.md`, `custom.md`) to standardize community feedback and reporting.
+- **Disabled Auto-Publishing:** Configured `electron-builder` to never attempt automatic publishing by adding the `-- -p never` flag to the build scripts. This prevents conflicts with the subsequent `Upload Release Assets` step which is explicitly responsible for handling the release.
+- **Provided GitHub Tokens:** Injected `GH_TOKEN` and `GITHUB_TOKEN` environment variables into the build step to ensure `electron-builder` has the necessary permissions to complete its packaging process without authentication errors.
 
-### Technical Details 🛠
+### Technical Details ⚙️
 
-- Refactored `usePomodoro.ts` and `useTimerStore.ts` to properly handle state separation between `STOPWATCH` (Focus Void) and `POMODORO` countdown modes.
-- Added IPC handles in Electron's `main.ts` and `preload.ts` to spawn and manage the new Mini Timer window.
-- Updated typing declarations (`src/vite-env.d.ts`) to accommodate new Electron APIs.
+- Updated `.github/workflows/release.yml` conditional build steps.
+- Fixed the `GitHub Personal Access Token is not set` error that occurred during the linux, mac, and win build jobs.
