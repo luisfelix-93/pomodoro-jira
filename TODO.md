@@ -75,3 +75,11 @@
 - [x] Integrate LogLedger (View History)
 - [x] Verify End-to-End Flow
 
+## Phase 9: Focus Mode Implementation
+- [x] Implement State Management for Focus Mode (`timerMode` in Zustand)
+- [x] Update Timer logic for incremental counting
+- [x] Add Mode Selector UI (Pomodoro vs Focus)
+- [x] Format time display to handle hours (`HH:MM:SS`)
+- [x] Implement 1-hour activity notification
+- [x] Enforce 8-hour maximum limit and auto-pause
+- [x] Integrate Focus Mode duration with Jira worklog submission

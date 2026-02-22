@@ -31,6 +31,7 @@ Thumbs.db
 # DOCUMENTAÇÃO
 *.specs.md
 PLAN-*.md
+issues/
 
 
 #Agentes
