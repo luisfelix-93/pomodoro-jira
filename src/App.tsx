@@ -5,6 +5,7 @@ import { TaskOrbit } from '@/pages/TaskOrbit';
 import { FocusVoid } from '@/pages/FocusVoid';
 import { LogLedger } from '@/pages/LogLedger';
 import { MiniTimer } from '@/pages/MiniTimer';
+import { GlobalWorklogModal } from '@/components/ui/GlobalWorklogModal';
 import { useTimerStore } from '@/store/useTimerStore';
 import { useTaskStore } from '@/store/useTaskStore';
 
@@ -45,7 +46,11 @@ function App() {
         const cleanupAction = window.electron.onTimerAction((action: string) => {
             if (action === 'play') timerState.start();
             if (action === 'pause') timerState.pause();
-            if (action === 'stop') timerState.stop();
+            if (action === 'stop') {
+                timerState.pause(); // Pause timer while noting
+                timerState.setPromptingWorklog(true);
+                window.electron?.expandMainWindow();
+            }
         });
 
         const cleanupMinimize = window.electron.onWindowMinimized(() => {
@@ -73,6 +78,11 @@ function App() {
         <Route path="/mini" element={<MiniTimer />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      {/* We conditionally render the modal if we are NOT in the mini window 
+          We already bail out of App.tsx logic for the mini window earlier, but
+          just in case, we only render the modal if not on the /mini route.
+      */}
+      {!window.location.hash.includes('#/mini') && <GlobalWorklogModal />}
     </Router>
   );
 }

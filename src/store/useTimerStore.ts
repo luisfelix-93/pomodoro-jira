@@ -9,12 +9,14 @@ interface TimerState {
   isRunning: boolean;
   totalDuration: number;
   lastTickTime: number | null;
+  isPromptingWorklog: boolean;
 
   start: () => void;
   pause: () => void;
   stop: () => void;
   tick: () => void;
   setMode: (mode: TimerMode) => void;
+  setPromptingWorklog: (prompting: boolean) => void;
 }
 
 const DURATIONS: Record<TimerMode, number> = {
@@ -32,6 +34,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   totalDuration: DURATIONS.FOCUS,
   isRunning: false,
   lastTickTime: null,
+  isPromptingWorklog: false,
 
   start: () => set({ isRunning: true, lastTickTime: Date.now() }),
   pause: () => set({ isRunning: false, lastTickTime: null }),
@@ -85,4 +88,6 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     isRunning: false,
     lastTickTime: null
   }),
+
+  setPromptingWorklog: (isPromptingWorklog) => set({ isPromptingWorklog }),
 }));
