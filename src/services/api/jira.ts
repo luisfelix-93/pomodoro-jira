@@ -70,8 +70,13 @@ export const jiraApi = {
       return response.data;
   },
 
-  getWorklogs: async () => {
-      const response = await apiClient.get('/worklogs');
+  getWorklogs: async (month?: number, year?: number) => {
+      const params: any = {};
+      if (month !== undefined && year !== undefined) {
+          params.month = month;
+          params.year = year;
+      }
+      const response = await apiClient.get('/worklogs', { params });
       return response.data;
   },
 

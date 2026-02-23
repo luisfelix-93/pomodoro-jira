@@ -26,7 +26,31 @@ export class WorklogController {
 
   static async list(req: Request, res: Response): Promise<void> {
     try {
+        const { month, year } = req.query;
+        let whereClause = {};
+
+        if (month && year) {
+            const m = parseInt(month as string, 10);
+            const y = parseInt(year as string, 10);
+
+            // Month in JS Date is 0-indexed, so we subtract 1 from the provided month
+            // assuming the frontend sends 1-12. If it sends 0-11, adjust accordingly.
+            // Let's assume frontend sends 0-11 based on standard JS getMonth() 
+            // WAIT, looking ahead to `date-fns`, usually we work with 0-indexed months.
+            // Let's assume the API expects 0-11 for `month`.
+            const startOfMonth = new Date(y, m, 1);
+            const endOfMonth = new Date(y, m + 1, 1);
+
+            whereClause = {
+                startTime: {
+                    gte: startOfMonth,
+                    lt: endOfMonth
+                }
+            };
+        }
+
         const worklogs = await dbRequest.prisma.worklog.findMany({
+            where: whereClause,
             orderBy: { startTime: 'desc' },
             include: { task: true }
         });

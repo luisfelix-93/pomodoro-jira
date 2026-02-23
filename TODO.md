@@ -83,3 +83,11 @@
 - [x] Implement 1-hour activity notification
 - [x] Enforce 8-hour maximum limit and auto-pause
 - [x] Integrate Focus Mode duration with Jira worklog submission
+
+## Phase 10: History Calendar Refactoring
+- [ ] Implement month navigation controls
+- [ ] Create `CalendarGrid` and `DayCell` components
+- [ ] Add monthly summary metrics (Total, Average, Best Day)
+- [ ] Implement `DailyLogsDrawer` for day details
+- [ ] Update `LogLedger.tsx` to use the new calendar view
+- [ ] Refactor Zustand store to fetch and cache worklogs monthly
