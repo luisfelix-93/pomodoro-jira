@@ -1,124 +1,119 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StarField } from '@/components/layout/StarField';
 import { GlassPanel } from '@/components/ui/GlassPanel';
 import { OrbitButton } from '@/components/ui/OrbitButton';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, RefreshCw, Trash2 } from 'lucide-react';
-import { jiraApi } from '@/services/api/jira';
-
-interface Worklog {
-    id: string | number;
-    issueKey: string;
-    comment: string;
-    durationSeconds: number;
-    startTime: string; // ISO
-    jiraWorklogId?: string;
-}
+import { ArrowLeft, Upload, RefreshCw } from 'lucide-react';
+import { useHistoryStore } from '@/store/useHistoryStore';
+import { HistoryMonthHeader } from '@/components/history/HistoryMonthHeader';
+import { CalendarGrid } from '@/components/history/CalendarGrid';
+import { DailyLogsDrawer } from '@/components/history/DailyLogsDrawer';
 
 export function LogLedger() {
   const navigate = useNavigate();
-  const [worklogs, setWorklogs] = useState<Worklog[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const fetchWorklogs = async () => {
-    setIsLoading(true);
-    try {
-        const data = await jiraApi.getWorklogs();
-        // Sort by start time desc
-        const sorted = data.sort((a: Worklog, b: Worklog) => 
-            new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-        );
-        setWorklogs(sorted);
-    } catch (error) {
-        console.error('Failed to fetch worklogs', error);
-    } finally {
-        setIsLoading(false);
-    }
-  };
-
-  const handleSync = async () => {
-      setIsLoading(true);
-      try {
-          await jiraApi.syncWorklogs();
-          await fetchWorklogs();
-      } catch (error) {
-          console.error('Sync failed', error);
-      } finally {
-          setIsLoading(false);
-      }
-  };
-
-  const handleDelete = async (id: string | number) => {
-      if (!confirm('Are you sure you want to delete this worklog?')) return;
-      
-      try {
-          await jiraApi.deleteWorklog(id);
-          setWorklogs(prev => prev.filter(log => log.id !== id));
-      } catch (error) {
-          console.error('Failed to delete worklog', error);
-          alert('Failed to delete worklog');
-      }
-  };
+  const { 
+    currentDate, 
+    selectedDate, 
+    setCurrentDate, 
+    setSelectedDate, 
+    fetchMonth, 
+    syncWorklogs, 
+    isLoading,
+    worklogsByMonth
+  } = useHistoryStore();
 
   useEffect(() => {
-    fetchWorklogs();
-  }, []);
+    fetchMonth(currentDate.getMonth(), currentDate.getFullYear());
+  }, [currentDate.getMonth(), currentDate.getFullYear(), fetchMonth]);
+
+  const cacheKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth()).padStart(2, '0')}`;
+  const monthlyLogs = worklogsByMonth[cacheKey] || [];
+
+  const metrics = useMemo(() => {
+     let maxSeconds = 0;
+     let bestDay: string | null = null;
+     const dailySums: Record<string, number> = {};
+
+     monthlyLogs.forEach(log => {
+        const dateStr = new Date(log.startTime).toISOString().split('T')[0];
+        dailySums[dateStr] = (dailySums[dateStr] || 0) + log.durationSeconds;
+        
+        if (dailySums[dateStr] > maxSeconds) {
+            maxSeconds = dailySums[dateStr];
+            bestDay = dateStr;
+        }
+     });
+
+     const totalSeconds = Object.values(dailySums).reduce((a, b) => a + b, 0);
+     const totalHours = totalSeconds / 3600;
+     const activeDays = Object.keys(dailySums).length;
+     const dailyAverage = activeDays > 0 ? (totalSeconds / activeDays) / 3600 : 0;
+     
+     // Need a proper date object avoiding timezone shift for best day
+     // appending T12:00:00 ensures it falls on the same correct day locally
+     const bestDayDate = bestDay ? new Date(`${bestDay}T12:00:00`) : null;
+
+     return {
+         totalHours,
+         dailyAverage,
+         bestDayDuration: maxSeconds / 3600,
+         bestDayDate
+     };
+  }, [monthlyLogs]);
 
   return (
-    <div className="relative min-h-screen w-full p-8 flex flex-col">
+    <div className="relative min-h-[100vh-2rem] w-[100vw] h-[100vh] overflow-hidden bg-black text-white flex flex-col pt-8 px-8 pb-4">
       <StarField />
       
-      <div className="flex justify-between items-center mb-8 z-10">
+      {/* Header Area */}
+      <div className="flex justify-between items-center mb-8 z-10 shrink-0">
         <div className="flex items-center gap-4">
              <OrbitButton size="sm" variant="ghost" onClick={() => navigate('/orbit')}>
                 <ArrowLeft className="w-5 h-5" />
              </OrbitButton>
-             <h1 className="text-2xl font-bold">Log Ledger</h1>
+             <h1 className="text-2xl font-bold tracking-wider">Log Ledger</h1>
         </div>
-        <OrbitButton size="sm" className="gap-2" onClick={handleSync} disabled={isLoading}>
+        <OrbitButton size="sm" className="gap-2" onClick={syncWorklogs} disabled={isLoading}>
             {isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             Sync to Jira
         </OrbitButton>
       </div>
       
-      <GlassPanel className="flex-1 p-6 relative overflow-hidden z-10 flex flex-col">
-         {worklogs.length === 0 && !isLoading && (
-             <div className="text-center text-white/30 italic mt-20">
-                 No worklogs recorded locally. Start a focus session!
-             </div>
-         )}
-         
-         <div className="space-y-4 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-             {worklogs.map((log) => (
-                 <div key={log.id} className="bg-white/5 border border-white/5 p-4 rounded-lg flex justify-between items-center hover:bg-white/10 transition-colors group">
-                    <div>
-                        <div className="flex items-center gap-3 mb-1">
-                            <span className="font-mono text-orbit-orange text-sm font-bold">{log.issueKey}</span>
-                            <span className="text-xs text-white/40">
-                                {new Date(log.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                            </span>
-                             {log.jiraWorklogId && (
-                                <span className="text-[10px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded">Synced</span>
-                            )}
-                        </div>
-                        <p className="text-sm text-white/80">{log.comment || 'No description'}</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="text-xl font-mono font-bold text-white/60">
-                            {Math.floor(log.durationSeconds / 60)}m
-                        </div>
-                        <button 
-                            onClick={() => handleDelete(log.id)}
-                            className="text-white/20 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-2"
-                            title="Delete Worklog"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </button>
-                    </div>
-                 </div>
-             ))}
-         </div>
+      {/* Main Content Area */}
+      <GlassPanel className="flex-1 p-8 relative overflow-hidden z-10 flex flex-col">
+          <HistoryMonthHeader 
+              currentDate={currentDate}
+              onDateChange={setCurrentDate}
+              totalHours={metrics.totalHours}
+              dailyAverage={metrics.dailyAverage}
+              bestDayDuration={metrics.bestDayDuration}
+              bestDayDate={metrics.bestDayDate}
+          />
+          
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+             <CalendarGrid 
+                 currentDate={currentDate}
+                 selectedDate={selectedDate}
+                 onSelectDate={setSelectedDate}
+             />
+          </div>
       </GlassPanel>
+
+      {/* Slide-out Drawer for Daily Details */}
+      <div className={`fixed inset-0 z-40 transition-opacity duration-300 ${selectedDate ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+          {/* Backdrop */}
+          <div 
+             className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+             onClick={() => setSelectedDate(null)}
+          />
+          {/* Drawer Content */}
+          <div className={`absolute top-0 right-0 h-full w-[400px] max-w-full bg-[#0a0a0a] shadow-[0_0_50px_rgba(0,0,0,0.8)] border-l border-white/10 flex flex-col transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedDate ? 'translate-x-0' : 'translate-x-full'}`}>
+              <DailyLogsDrawer 
+                  date={selectedDate} 
+                  onClose={() => setSelectedDate(null)} 
+              />
+          </div>
+      </div>
     </div>
   );
 }

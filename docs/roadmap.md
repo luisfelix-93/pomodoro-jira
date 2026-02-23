@@ -25,9 +25,15 @@ Este documento concentra a visão de longo prazo e as próximas grandes *feature
 
 ---
 
+### 4. 🔕 Sincronização com Modo Foco (OS)
+* **Status**: Planejado
+* **Documentação**: [Ver Especificação Técnica](focus.specs.md)
+* **Descrição**: Integração **opcional** com os modos de foco nativos do sistema operacional ("Focus Assist" no Windows e "Não Perturbe" no macOS). Quando um Pomodoro ou timer de foco for iniciado, o aplicativo pode ativar automaticamente o modo de foco do sistema e desativá-lo ao terminar.
+
+---
+
 *(Adicione novas funcionalidades aqui ao longo do tempo)*
 
 ### Ideias para o Futuro
 - **Atalhos Globais (Global Shortcuts)**: Permitir pausar/iniciar ou adicionar 1 minuto extra usando combinações de teclas de qualquer lugar no sistema operacional.
-- **Integração com Modos de Foco do SO**: Tentar sincronizar com o "Focus Assist" (Windows) ou "Não Perturbe" (Mac) automaticamente quando um Pomodoro inicia.
 - **Relatório de Produtividade Diário**: Um resumo estético enviado por notificação ao final do dia mostrando: Pomodoros feitos vs estimativas, Tempo Total, etc.

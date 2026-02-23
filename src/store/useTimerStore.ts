@@ -9,38 +9,46 @@ interface TimerState {
   isRunning: boolean;
   totalDuration: number;
   lastTickTime: number | null;
+  isPromptingWorklog: boolean;
+
+  focusDuration: number; // in minutes
 
   start: () => void;
   pause: () => void;
   stop: () => void;
   tick: () => void;
   setMode: (mode: TimerMode) => void;
+  setPromptingWorklog: (prompting: boolean) => void;
+  setFocusDuration: (minutes: number) => void;
 }
 
-const DURATIONS: Record<TimerMode, number> = {
-    FOCUS: 25 * 60,
+const getDurations = (focusDurationMinutes: number): Record<TimerMode, number> => ({
+    FOCUS: focusDurationMinutes * 60,
     SHORT_BREAK: 5 * 60,
     LONG_BREAK: 15 * 60,
     STOPWATCH: 0,
     IDLE: 0
-};
+});
 
 export const useTimerStore = create<TimerState>((set, get) => ({
   mode: 'FOCUS',
-  timeLeft: DURATIONS.FOCUS,
+  focusDuration: 25,
+  timeLeft: 25 * 60,
   timeElapsed: 0,
-  totalDuration: DURATIONS.FOCUS,
+  totalDuration: 25 * 60,
   isRunning: false,
   lastTickTime: null,
+  isPromptingWorklog: false,
 
   start: () => set({ isRunning: true, lastTickTime: Date.now() }),
   pause: () => set({ isRunning: false, lastTickTime: null }),
   
   stop: () => {
      const state = get();
+     const durations = getDurations(state.focusDuration);
      set({ 
         isRunning: false, 
-        timeLeft: DURATIONS[state.mode],
+        timeLeft: durations[state.mode],
         timeElapsed: 0,
         lastTickTime: null
      });
@@ -65,7 +73,12 @@ export const useTimerStore = create<TimerState>((set, get) => ({
             });
         } else {
             if (state.timeLeft - deltaSeconds <= 0) {
-                set({ isRunning: false, timeLeft: 0, lastTickTime: null });
+                set({ 
+                    isRunning: false, 
+                    timeLeft: 0, 
+                    lastTickTime: null,
+                    isPromptingWorklog: state.mode === 'FOCUS'
+                });
             } else {
                 set({ 
                     timeLeft: state.timeLeft - deltaSeconds, 
@@ -77,12 +90,30 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     }
   },
 
-  setMode: (mode) => set({ 
-    mode, 
-    timeLeft: DURATIONS[mode], 
-    totalDuration: DURATIONS[mode],
-    timeElapsed: 0,
-    isRunning: false,
-    lastTickTime: null
-  }),
+  setMode: (mode) => {
+    const durations = getDurations(get().focusDuration);
+    set({ 
+      mode, 
+      timeLeft: durations[mode], 
+      totalDuration: durations[mode],
+      timeElapsed: 0,
+      isRunning: false,
+      lastTickTime: null
+    });
+  },
+
+  setPromptingWorklog: (isPromptingWorklog) => set({ isPromptingWorklog }),
+
+  setFocusDuration: (minutes) => {
+    const state = get();
+    const isFocus = state.mode === 'FOCUS';
+    const newTotal = minutes * 60;
+    set({ 
+        focusDuration: minutes,
+        ...(isFocus && !state.isRunning ? { 
+            timeLeft: newTotal, 
+            totalDuration: newTotal 
+        } : {})
+    });
+  }
 }));

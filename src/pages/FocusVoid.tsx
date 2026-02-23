@@ -1,23 +1,18 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Pause, Square, ArrowLeft } from 'lucide-react';
 import { OrbitButton } from '@/components/ui/OrbitButton';
 import { TimerRing } from '@/components/ui/TimerRing';
 import { StarField } from '@/components/layout/StarField';
-import { NotationModal } from '@/components/ui/NotationModal';
 import { usePomodoro } from '@/hooks/usePomodoro';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useTimerStore } from '@/store/useTimerStore';
-import { jiraApi } from '@/services/api/jira';
 
 export function FocusVoid() {
   const navigate = useNavigate();
-  const { isRunning, start, pause, stop, timeLeft, timeElapsed, totalDuration, mode, setMode } = useTimerStore();
+  const { isRunning, start, pause, timeLeft, timeElapsed, totalDuration, mode, setMode, setPromptingWorklog, focusDuration, setFocusDuration } = useTimerStore();
   const { formatTime } = usePomodoro();
   const { getActiveIssue } = useTaskStore();
   const activeIssue = getActiveIssue();
-  
-  const [showNotation, setShowNotation] = useState(false);
 
   // Calculate progress for ring
   const progress = mode === 'STOPWATCH' 
@@ -26,27 +21,7 @@ export function FocusVoid() {
 
   const handleStop = () => {
     pause(); // Pause timer while noting
-    setShowNotation(true);
-  };
-
-  const handleNotationComplete = async (note: string) => {
-    if (activeIssue && activeIssue.key) {
-        try {
-            const timeSpentSeconds = mode === 'STOPWATCH' ? timeElapsed : totalDuration - timeLeft;
-            await jiraApi.addWorklog(activeIssue.key, {
-                timeSpentSeconds,
-                comment: note,
-                started: new Date().toISOString()
-            });
-            console.log(`Saved note for ${activeIssue.key}`);
-        } catch (error) {
-            console.error('Failed to save worklog:', error);
-            // In a real app we'd show a toast here
-        }
-    }
-    stop();
-    setShowNotation(false);
-    navigate('/orbit');
+    setPromptingWorklog(true);
   };
 
   return (
@@ -78,19 +53,35 @@ export function FocusVoid() {
         <div className="flex flex-col items-center gap-6">
            {/* Mode Selector - Only visible when timer hasn't started */}
            {!isRunning && (mode !== 'STOPWATCH' && totalDuration === timeLeft || mode === 'STOPWATCH' && timeElapsed === 0) && (
-              <div className="flex bg-black/40 border border-white/10 rounded-full p-1 mb-2">
-                 <button 
-                   onClick={() => setMode('FOCUS')}
-                   className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors ${mode === 'FOCUS' ? 'bg-orbit-orange text-black' : 'text-white/50 hover:text-white'}`}
-                 >
-                    POMODORO
-                 </button>
-                 <button 
-                   onClick={() => setMode('STOPWATCH')}
-                   className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors ${mode === 'STOPWATCH' ? 'bg-orbit-orange text-black' : 'text-white/50 hover:text-white'}`}
-                 >
-                    FOCUS
-                 </button>
+              <div className="flex flex-col items-center gap-4 mb-2">
+                  <div className="flex bg-black/40 border border-white/10 rounded-full p-1">
+                     <button 
+                       onClick={() => setMode('FOCUS')}
+                       className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors ${mode === 'FOCUS' ? 'bg-orbit-orange text-black' : 'text-white/50 hover:text-white'}`}
+                     >
+                        POMODORO
+                     </button>
+                     <button 
+                       onClick={() => setMode('STOPWATCH')}
+                       className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors ${mode === 'STOPWATCH' ? 'bg-orbit-orange text-black' : 'text-white/50 hover:text-white'}`}
+                     >
+                        FOCUS
+                     </button>
+                  </div>
+                  
+                  {mode === 'FOCUS' && (
+                      <div className="flex bg-black/40 border border-white/10 rounded-full p-1">
+                         {[25, 45, 60].map((mins) => (
+                           <button 
+                             key={mins}
+                             onClick={() => setFocusDuration(mins)}
+                             className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider transition-colors ${focusDuration === mins ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white'}`}
+                           >
+                              {mins}M
+                           </button>
+                         ))}
+                      </div>
+                  )}
               </div>
            )}
 
@@ -111,12 +102,6 @@ export function FocusVoid() {
            </div>
         </div>
       </div>
-
-      <NotationModal 
-        isOpen={showNotation} 
-        onClose={() => setShowNotation(false)}
-        onSave={handleNotationComplete}
-      />
     </div>
   );
 }
