@@ -9,7 +9,7 @@ import { useTimerStore } from '@/store/useTimerStore';
 
 export function FocusVoid() {
   const navigate = useNavigate();
-  const { isRunning, start, pause, timeLeft, timeElapsed, totalDuration, mode, setMode, setPromptingWorklog } = useTimerStore();
+  const { isRunning, start, pause, timeLeft, timeElapsed, totalDuration, mode, setMode, setPromptingWorklog, focusDuration, setFocusDuration } = useTimerStore();
   const { formatTime } = usePomodoro();
   const { getActiveIssue } = useTaskStore();
   const activeIssue = getActiveIssue();
@@ -53,19 +53,35 @@ export function FocusVoid() {
         <div className="flex flex-col items-center gap-6">
            {/* Mode Selector - Only visible when timer hasn't started */}
            {!isRunning && (mode !== 'STOPWATCH' && totalDuration === timeLeft || mode === 'STOPWATCH' && timeElapsed === 0) && (
-              <div className="flex bg-black/40 border border-white/10 rounded-full p-1 mb-2">
-                 <button 
-                   onClick={() => setMode('FOCUS')}
-                   className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors ${mode === 'FOCUS' ? 'bg-orbit-orange text-black' : 'text-white/50 hover:text-white'}`}
-                 >
-                    POMODORO
-                 </button>
-                 <button 
-                   onClick={() => setMode('STOPWATCH')}
-                   className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors ${mode === 'STOPWATCH' ? 'bg-orbit-orange text-black' : 'text-white/50 hover:text-white'}`}
-                 >
-                    FOCUS
-                 </button>
+              <div className="flex flex-col items-center gap-4 mb-2">
+                  <div className="flex bg-black/40 border border-white/10 rounded-full p-1">
+                     <button 
+                       onClick={() => setMode('FOCUS')}
+                       className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors ${mode === 'FOCUS' ? 'bg-orbit-orange text-black' : 'text-white/50 hover:text-white'}`}
+                     >
+                        POMODORO
+                     </button>
+                     <button 
+                       onClick={() => setMode('STOPWATCH')}
+                       className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors ${mode === 'STOPWATCH' ? 'bg-orbit-orange text-black' : 'text-white/50 hover:text-white'}`}
+                     >
+                        FOCUS
+                     </button>
+                  </div>
+                  
+                  {mode === 'FOCUS' && (
+                      <div className="flex bg-black/40 border border-white/10 rounded-full p-1">
+                         {[25, 45, 60].map((mins) => (
+                           <button 
+                             key={mins}
+                             onClick={() => setFocusDuration(mins)}
+                             className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider transition-colors ${focusDuration === mins ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white'}`}
+                           >
+                              {mins}M
+                           </button>
+                         ))}
+                      </div>
+                  )}
               </div>
            )}
 
