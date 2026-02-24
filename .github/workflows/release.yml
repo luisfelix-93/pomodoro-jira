@@ -55,10 +55,7 @@ jobs:
   build:
     name: Build and Upload Assets
     needs: tag_and_release
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: windows-latest
     
     steps:
       - name: Checkout code
@@ -83,13 +80,7 @@ jobs:
 
       - name: Build and Upload Artifacts
         run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            npm run build:win -- -p never
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            npm run build:mac -- -p never
-          else
-            npm run build:linux -- -p never
-          fi
+          npm run build:win -- -p never
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -100,10 +91,8 @@ jobs:
         with:
           files: |
             release/*.exe
-            release/*.dmg
-            release/*.AppImage
-            release/*.deb
-            release/*.snap
+            release/*.blockmap
+            release/latest.yml
           tag_name: ${{ needs.tag_and_release.outputs.new_tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
