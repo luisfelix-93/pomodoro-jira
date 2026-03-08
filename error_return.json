@@ -1,0 +1,41 @@
+{
+    "appConfig": {
+        "auth0Config": {
+            "callbackUrl": "https://id.atlassian.com/login/callback",
+            "clientId": "tDP5by46cc3gEck7d2vbHZsqsfrDK6t9",
+            "domain": "auth.atlassian.com",
+            "deferRules": {
+                "apple": {
+                    "clientId": "hSMIXZp9mqs6yhg1TY3WE1EsDGMtL9OQ",
+                    "callbackUrl": "https://id.atlassian.com/login/apple/callback"
+                },
+                "microsoft": {
+                    "clientId": "8txT5SyXwjqIlAtmX3xJbhIyL4pDphh1",
+                    "callbackUrl": "https://id.atlassian.com/login/microsoft/callback"
+                },
+                "slack": {
+                    "clientId": "2z1gHggedTDLLYsYcquqcaJiReZUbVCB",
+                    "callbackUrl": "https://id.atlassian.com/login/slack/callback"
+                }
+            }
+        },
+        "bitbucketSignupUrl": "https://bitbucket.org/account/signup",
+        "bitbucketSignupUrlOverrideEnabled": false,
+        "castlePublishableApiKey": "pk_yqQBTzLjn7dMC52pBpyctrMqszVKo193",
+        "googleAuthClientId": "596149463257-9oquqfivs9on8t8erq23c8qso6vk3cp1.apps.googleusercontent.com",
+        "marketingConsentApiUrl": "https://preferences.atlassian.com",
+        "recaptchaEnable": true,
+        "recaptchaEnterpriseCheckboxKeySite": "6LfnteAZAAAAAH3vsGy_TA6P6wBH6jtbMqAeVI8k",
+        "recaptchaEnterpriseInvisibleKeySite": "6LcTpeAZAAAAACEXJuZmTp5YVTOUVXnN3TYR_fLM",
+        "smsEnrollmentRecaptchaEnterpriseInvisibleKeySite": "6LeLRz0kAAAAAPIWGnreLcE0BJaZ17REyxkFhM0E",
+        "recaptchaEnterpriseScoreKeySite": "6Le9VxMnAAAAALKRlj8jmKwUYmFTZWcF0y4o9QeD",
+        "segmentIoKey": "cb2egpwag7",
+        "contextPath": ""
+    },
+    "locale": "pt-BR",
+    "csrfToken": "fc3a3fba-cc7d-4b6b-b78e-75deef553636",
+    "hashedCsrfToken": "02472a49c4c92f670726c0e83ff73fe9b0d1a5ceb2e19aa2d76e74a84446c5bf",
+    "cobranding": {},
+    "ffsId": "e95588f9-6196-4454-affc-87209ecf8a41",
+    "cspNonce": "HlblYOkYMpahI3quuaNCt/EFVnI="
+}

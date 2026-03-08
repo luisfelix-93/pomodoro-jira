@@ -80,6 +80,70 @@ export class AuthController {
     }
   }
 
+  /**
+   * Token Exchange Proxy (Option A).
+   * SPA sends the authorization code; server exchanges it using client_secret.
+   * Atlassian requires Content-Type: application/json + client_secret.
+   */
+  static async exchange(req: Request, res: Response): Promise<void> {
+    const { code, redirect_uri } = req.body;
+    const clientId = process.env.CLIENT_ID;
+    const clientSecret = process.env.CLIENT_SECRET;
+
+    if (!code || !clientId || !clientSecret) {
+      res.status(400).json({ error: 'Missing code or server credentials' });
+      return;
+    }
+
+    try {
+      const tokenResponse = await axios.post(
+        'https://auth.atlassian.com/oauth/token',
+        {
+          grant_type: 'authorization_code',
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          redirect_uri: redirect_uri || 'http://localhost:5173/callback',
+        },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+
+      const { access_token, refresh_token, expires_in, scope } = tokenResponse.data;
+
+      // Fetch accessible resources to get cloudId
+      const resourcesResponse = await axios.get(
+        'https://api.atlassian.com/oauth/token/accessible-resources',
+        { headers: { Authorization: `Bearer ${access_token}` } }
+      );
+
+      const cloudId = resourcesResponse.data?.[0]?.id || '';
+
+      // Persist to DB
+      await dbRequest.prisma.userConfig.create({
+        data: {
+          jiraDomain: resourcesResponse.data?.[0]?.url || '',
+          accessToken: access_token,
+          refreshToken: refresh_token,
+          cloudId,
+          tokenExpiresAt: new Date(Date.now() + expires_in * 1000),
+        },
+      });
+
+      res.json({
+        access_token,
+        refresh_token,
+        expires_in,
+        scope,
+        cloud_id: cloudId,
+      });
+    } catch (error: any) {
+      console.error('Token exchange error:', error?.response?.data || error.message);
+      res.status(error?.response?.status || 500).json({
+        error: error?.response?.data?.error_description || 'Token exchange failed',
+      });
+    }
+  }
+
   static async loginBasic(req: Request, res: Response): Promise<void> {
     const { domain, email, token } = req.body;
 

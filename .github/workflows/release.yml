@@ -77,7 +77,8 @@ jobs:
       
       - name: Create env file
         run: |
-          echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" > server/.env
+          echo "DATABASE_URL=file:../database.sqlite" > server/.env
+          echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> server/.env
           echo "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> server/.env
         shell: bash
 

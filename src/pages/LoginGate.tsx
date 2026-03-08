@@ -5,20 +5,15 @@ import { OrbitButton } from '@/components/ui/OrbitButton';
 import { StarField } from '@/components/layout/StarField';
 import { Rocket } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { redirectToLogin } from '@/auth/jiraAuth';
 
 export function LoginGate() {
   const navigate = useNavigate();
-  const { checkAuth, isLoading, error, isAuthenticated } = useAuthStore();
+  const { isLoading, error, isAuthenticated } = useAuthStore();
 
   const handleLogin = () => {
-    // Redirect to backend OAuth route
-    window.location.href = 'http://localhost:3001/api/auth/login';
+    redirectToLogin();
   };
-
-  useEffect(() => {
-    // Check if we already have a backend session on mount
-    checkAuth();
-  }, [checkAuth]);
 
   useEffect(() => {
     if (isAuthenticated) {

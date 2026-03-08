@@ -91,3 +91,17 @@
 - [ ] Implement `DailyLogsDrawer` for day details
 - [ ] Update `LogLedger.tsx` to use the new calendar view
 - [ ] Refactor Zustand store to fetch and cache worklogs monthly
+
+## Phase 11: Jira OAuth & Runtime Config
+- [x] Create `public/config.json` and `public/config.example.json`
+- [x] Modify `src/main.tsx` to fetch configuration before React render
+- [x] Create `src/config/runtimeConfig.ts` singleton
+- [x] Create `src/auth/jiraAuth.ts` (auth utility — authorize URL + server proxy)
+- [x] Add `POST /api/auth/exchange` endpoint on server (token proxy with `client_secret`)
+- [x] Rewrite `src/pages/CallbackPage.tsx` (extracts code → calls server)
+- [x] Update `src/pages/LoginGate.tsx` (uses `redirectToLogin()`)
+- [x] Remove `JiraAuthProvider` wrapper from `App.tsx`
+- [x] Fix `DATABASE_URL` in GitHub Actions `release.yml` pipeline
+- [x] Remove `react-oidc-context` from `package.json` (`npm uninstall react-oidc-context`)
+- [x] Delete deprecated `src/auth/JiraAuthProvider.tsx`
+
