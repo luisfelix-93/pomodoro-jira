@@ -1,23 +1,37 @@
-# PR Summary: Correções de Autenticação e Atualização de Status de Tasks
+# PR Summary: Refatoração do Fluxo Exclusivo de Login Jira OAuth (PKCE) via Server Proxy
 
-## 📝 O que foi feito?
+## 🎯 Objetivo
+Resolver o erro `401 Unauthorized` constante no fluxo de login Atlassian. A solução anterior com a biblioteca cliente `react-oidc-context` falhava porque a Atlassian não é estritamente aderente ao padrão OIDC e obriga o envio do `client_secret` e cabeçalho `Content-Type: application/json` no endpoint de troca de tokens (o que é inseguro e normalmente não suportado para SPAs puros). 
+Esta PR reestrutura a autenticação movendo o token exchange para o backend (Server Proxy), mantendo a segurança do `client_secret`.
 
-Este Pull Request (PR) resolve principalmente o problema crítico de falha no login com Jira OAuth na aplicação compilada/buildada, além de trazer pequenos ajustes no frontend.
+## 🛠 Alterações Realizadas
 
-### 1. Autenticação no ambiente de Produção (Electron / Github Actions)
-O aplicativo de desktop (em React/Electron) estava rodando normalmente no modo desenvolvimento (*dev*), mas no momento de gerar o arquivo executável final, as variáveis do Jira (`CLIENT_ID` e `CLIENT_SECRET`) não eram encontradas pelo servidor local incluído.
-- **Backend (`dotenv`)**: Adicionamos a biblioteca `dotenv` no backend e determinamos a inicialização do carregamento explicito do caminho relativo (`../.env`) em `server/src/index.ts`.
-- **Electron Builder**: Modificamos a regra `extraResources` no arquivo `electron-builder.yml` para assegurar que o arquivo `server/.env` gerado acompanhe o *build* e não fique isolado fora do executável principal final.
-- **Github Actions CI/CD**: A esteira de *Release* clonava o repositório mas obviamente os `.env` estavam ignorados. Agora, o `.github/workflows/release.yml` possui um passo (step) exclusivo antes da fabricação do aplicativo que usa o mecanismo de *Secrets* do GitHub (`secrets.CLIENT_ID` e `secrets.CLIENT_SECRET`) para criar "on-the-fly" um arquivo real `.env` dentro da pasta `server/` garantindo que o `build` posterior encontre o que precisa.
+### 1. Server-Side (Proxy de Autenticação)
+- **Novo Endpoint de Exchange:** Adicionada e implementada a rota `POST /api/auth/exchange` no `authController.ts` e `auth.ts`.
+- **Mecânica:** O frontend envia apenas o `code` de autorização; o servidor anexa em segurança o `client_secret`, define os headers corretos e efetua a troca segura com a Atlassian, repassando os tokens de volta.
+- **Pipeline Segura:** Atualizado `release.yml` do GitHub Actions para incluir o `DATABASE_URL` crítico para o Prisma na compilação do backend local da Release.
 
-### 2. Aprimoramento do Menu e State Manager
-- Inserimos na base de filtros (`useTaskStore`) novos status extraídos dos *workflows* do Jira (`Cancelado pelo Solicitante`, `DODM - RESOLVIDO`, `Pendente Homologação em Produção`, `[CD] Encerrado`) na *blacklist* de exibição das tarefas ativas.
-- Correção de exibição da Tag do número de versão na tela de `LoginGate` para **v0.0.6**.
+### 2. Frontend (Substituição da Biblioteca Incompatível)
+- **Remoção de Dependências:** O pacote incompatível `react-oidc-context` foi desinstalado e seu provider `JiraAuthProvider.tsx` foi removido completamente do `App.tsx` e deletado da codebase.
+- **Novo Utilitário Leve:** Criado `src/auth/jiraAuth.ts` para assumir as responsabilidades básicas:
+  - Formatação explícita da URL de autorização Atlassian (incluindo `prompt=consent` obrigatório e `audience`).
+  - Função `exchangeCodeForTokens` que consome o novo proxy do backend.
+- **Ajuste de Fluxo com react-router-dom:**
+  - O `LoginGate.tsx` passa a chamar explicitamente o redirecionamento.
+  - A rota de `CallbackPage.tsx` intercepta o `code` via `window.location.search` e chama o backend manual via fetch.
+  - Corrigido um bug importante de conflito de rotas: o redirect pós-login de volta para a dashboard agora usa `window.location.replace('/#/orbit')` para sair de ambientes sem hash e engatar corretamente no `HashRouter` da aplicação base.
 
-## 🔄 Arquivos Modificados:
-- `M` `.github/workflows/release.yml` (Pipeline CI/CD atualizada)
-- `M` `electron-builder.yml` (Recursos extra definidos no Webpack/Builder)
-- `M` `server/package.json` & `server/package-lock.json` (Dependência do Dotenv)
-- `M` `server/src/index.ts` (Import do Dotenv)
-- `M` `src/pages/LoginGate.tsx` (Versão no rodapé)
-- `M` `src/store/useTaskStore.ts` (Exclude status list)
+### 3. Configurações Dinâmicas (Runtime Config)
+- Introdução de estruturas explícitas `public/config.json` e `public/config.example.json`.
+- A injeção dessa configuração é forçada no arquivo raiz `main.tsx` através da rotina assíncrona do Service `runtimeConfig.ts` antes de instanciar todo o bundle do React, acabando de uma vez com as variáveis engessadas `.env` acopladas ao bundle final do Vite.
+
+## 🧪 Como Testar
+1. Subir aplicação `npm run dev`.
+2. Acessar a aplicação, dar início ao login `Login with Atlassian`.
+3. Validar se não ocorre mais erro na página Callback, e se cai direto carregado com sucesso na URL da dashboard `/#/orbit`.
+
+## 📌 Checklist de Qualidade
+- [x] Testado local com sucesso.
+- [x] Nenhuma credencial/secret vazada pro client/bundle do Frontend.
+- [x] OIDC provider dead code e pacotes lixo varridos da branch.
+- [x] Pipeline CD refatorado para o DB do Electron rodar local `(DATABASE_URL)`.
