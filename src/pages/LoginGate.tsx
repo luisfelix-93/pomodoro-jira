@@ -5,20 +5,15 @@ import { OrbitButton } from '@/components/ui/OrbitButton';
 import { StarField } from '@/components/layout/StarField';
 import { Rocket } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { redirectToLogin } from '@/auth/jiraAuth';
 
 export function LoginGate() {
   const navigate = useNavigate();
-  const { checkAuth, isLoading, error, isAuthenticated } = useAuthStore();
+  const { isLoading, error, isAuthenticated } = useAuthStore();
 
   const handleLogin = () => {
-    // Redirect to backend OAuth route
-    window.location.href = 'http://localhost:3001/api/auth/login';
+    redirectToLogin();
   };
-
-  useEffect(() => {
-    // Check if we already have a backend session on mount
-    checkAuth();
-  }, [checkAuth]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -55,7 +50,7 @@ export function LoginGate() {
       </GlassPanel>
       
       <div className="absolute bottom-4 flex flex-col items-center gap-1 text-white/20 text-xs hover:text-white/40 transition-colors">
-        <span>v0.0.4 • FocusApp</span>
+        <span>v0.0.6 • FocusApp</span>
         <a 
           href="https://github.com/luisfelix-93/pomodoro-jira/blob/main/docs/PRIVACY.md" 
           target="_blank" 

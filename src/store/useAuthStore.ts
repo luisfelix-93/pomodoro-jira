@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { jiraApi } from '@/services/api/jira';
-
 interface AuthState {
   isAuthenticated: boolean;
   domain: string | null;
@@ -9,9 +7,18 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   
-  checkAuth: () => Promise<void>;
+  login: (tokens: { accessToken: string, refreshToken: string, expiresIn: number, scope: string, cloudId: string }) => void;
   logout: () => Promise<void>;
   setUser: (user: any) => void;
+  setAuthError: (error: string) => void;
+  setLoading: (isLoading: boolean) => void;
+  tokens: {
+    accessToken: string | null;
+    refreshToken: string | null;
+    expiresAt: number | null;
+    scope: string | null;
+    cloudId: string | null;
+  };
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -20,47 +27,54 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       domain: null,
       user: null,
-      isLoading: true, // Start true while we check session
+      isLoading: false, // Moved session checking to OIDC auth context
       error: null,
+      tokens: {
+        accessToken: null,
+        refreshToken: null,
+        expiresAt: null,
+        scope: null,
+        cloudId: null
+      },
 
-      checkAuth: async () => {
-        set({ isLoading: true, error: null });
-        try {
-            const response = await jiraApi.getStatus();
-            if (response.isAuthenticated) {
-                set({ 
-                    isAuthenticated: true, 
-                    domain: response.user?.domain,
-                    user: response.user,
-                    isLoading: false
-                });
-            } else {
-                set({ isAuthenticated: false, isLoading: false, domain: null, user: null });
-            }
-        } catch (error) {
-            console.error('Check auth error:', error);
-            set({ isAuthenticated: false, isLoading: false, error: 'Could not verify session' });
-        }
+      login: (tokens) => {
+        set({
+          isAuthenticated: true,
+          tokens: {
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            expiresAt: Date.now() + tokens.expiresIn * 1000,
+            scope: tokens.scope,
+            cloudId: tokens.cloudId
+          },
+          isLoading: false,
+          error: null
+        });
       },
 
       logout: async () => {
-        try {
-          await jiraApi.logout();
-        } catch (error) {
-          console.error('Backend logout failed:', error);
-        }
+        // We'll trust the OIDC client to handle the actual IdP logout
         set({ 
           isAuthenticated: false, 
           domain: null,
-          user: null 
+          user: null,
+          tokens: {
+            accessToken: null,
+            refreshToken: null,
+            expiresAt: null,
+            scope: null,
+            cloudId: null
+          }
         });
       },
 
       setUser: (user) => set({ user }),
+      setAuthError: (error) => set({ error, isLoading: false }),
+      setLoading: (isLoading) => set({ isLoading }),
     }),
     {
       name: 'auth-storage',
-      partialize: (state: AuthState) => ({ domain: state.domain }) as any, 
+      partialize: (state: AuthState) => ({ domain: state.domain, tokens: state.tokens }) as any, 
     }
   ) 
 );

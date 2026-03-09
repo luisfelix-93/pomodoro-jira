@@ -12,6 +12,7 @@ extraResources:
   - server/prisma/**/*
   - server/node_modules/**/*
   - server/seed.sqlite
+  - server/.env
 win:
   target: nsis
 nsis:

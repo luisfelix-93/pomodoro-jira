@@ -40,13 +40,22 @@ If you want to run the application from source or contribute to development:
    cd pomerode-jira
    ```
 
-2. **Install dependencies**:
+2. **Environment Setup (Jira OAuth Config)**:
+   The application requires some variables to connect to Atlassian APIs. These are configured via a Runtime Config JSON file.
+   - Copy the example config file:
+     ```bash
+     cp public/config.example.json public/config.json
+     ```
+   - Update `public/config.json` with your Jira OAuth App credentials (specifically the `VITE_JIRA_CLIENT_ID`).
+   > *Note: For the backend proxy token exchange to work locally, ensure you also have `.env` with `CLIENT_ID` and `CLIENT_SECRET` under the `server/` directory.*
+
+4. **Install dependencies**:
    ```bash
    npm install
    cd server && npm install && cd ..
    ```
 
-3. **Run in development mode**:
+5. **Run in development mode**:
    ```bash
    npm run dev
    ```
