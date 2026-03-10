@@ -1,37 +1,50 @@
-# PR Summary: Refatoração do Fluxo Exclusivo de Login Jira OAuth (PKCE) via Server Proxy
+# PR Summary: Correção de Bugs Críticos do Executável Electron em Produção (v0.0.8)
 
 ## 🎯 Objetivo
-Resolver o erro `401 Unauthorized` constante no fluxo de login Atlassian. A solução anterior com a biblioteca cliente `react-oidc-context` falhava porque a Atlassian não é estritamente aderente ao padrão OIDC e obriga o envio do `client_secret` e cabeçalho `Content-Type: application/json` no endpoint de troca de tokens (o que é inseguro e normalmente não suportado para SPAs puros). 
-Esta PR reestrutura a autenticação movendo o token exchange para o backend (Server Proxy), mantendo a segurança do `client_secret`.
+Resolver três bugs críticos que impediam o funcionamento do aplicativo FocusApp quando instalado via GitHub Release (executável Electron). Todos os problemas eram causados pela diferença fundamental entre o ambiente de desenvolvimento (`http://localhost:5173`) e o ambiente de produção Electron (`file://` protocol).
 
 ## 🛠 Alterações Realizadas
 
-### 1. Server-Side (Proxy de Autenticação)
-- **Novo Endpoint de Exchange:** Adicionada e implementada a rota `POST /api/auth/exchange` no `authController.ts` e `auth.ts`.
-- **Mecânica:** O frontend envia apenas o `code` de autorização; o servidor anexa em segurança o `client_secret`, define os headers corretos e efetua a troca segura com a Atlassian, repassando os tokens de volta.
-- **Pipeline Segura:** Atualizado `release.yml` do GitHub Actions para incluir o `DATABASE_URL` crítico para o Prisma na compilação do backend local da Release.
+### 1. Correção do Carregamento do `config.json` (runtimeConfig.ts)
+- **Problema:** Em produção, `fetch('/config.json')` resolvia para `file:///C:/config.json` — a raiz do drive — em vez do diretório do app.
+- **Causa Raiz:** O path absoluto `/config.json` funciona no dev server HTTP, mas no protocolo `file://` o `/` aponta para a raiz do disco.
+- **Correção:** Detecção dinâmica do protocolo: usa path relativo `config.json` quando `file://`, mantém absoluto `/config.json` para dev server.
 
-### 2. Frontend (Substituição da Biblioteca Incompatível)
-- **Remoção de Dependências:** O pacote incompatível `react-oidc-context` foi desinstalado e seu provider `JiraAuthProvider.tsx` foi removido completamente do `App.tsx` e deletado da codebase.
-- **Novo Utilitário Leve:** Criado `src/auth/jiraAuth.ts` para assumir as responsabilidades básicas:
-  - Formatação explícita da URL de autorização Atlassian (incluindo `prompt=consent` obrigatório e `audience`).
-  - Função `exchangeCodeForTokens` que consome o novo proxy do backend.
-- **Ajuste de Fluxo com react-router-dom:**
-  - O `LoginGate.tsx` passa a chamar explicitamente o redirecionamento.
-  - A rota de `CallbackPage.tsx` intercepta o `code` via `window.location.search` e chama o backend manual via fetch.
-  - Corrigido um bug importante de conflito de rotas: o redirect pós-login de volta para a dashboard agora usa `window.location.replace('/#/orbit')` para sair de ambientes sem hash e engatar corretamente no `HashRouter` da aplicação base.
+### 2. Interceptação do OAuth Callback no Electron (electron/main.ts)
+- **Problema:** Após login no Atlassian, o redirect para `http://localhost:5173/callback?code=...` falhava silenciosamente porque não há dev server rodando no executável buildado. O authorization code expirava sem ser trocado.
+- **Causa Raiz:** O Vite dev server (porta 5173) só existe em desenvolvimento. Em produção, o frontend carrega de `file://`.
+- **Correção:** Adicionado interceptor `webRequest.onBeforeRequest` no processo principal do Electron que:
+  1. Captura requests para `http://localhost:5173/callback*`
+  2. Cancela a navegação HTTP
+  3. Extrai `code` e `state` da URL
+  4. Recarrega o `index.html` local com os parâmetros OAuth no hash: `#/callback?code=...&state=...`
 
-### 3. Configurações Dinâmicas (Runtime Config)
-- Introdução de estruturas explícitas `public/config.json` e `public/config.example.json`.
-- A injeção dessa configuração é forçada no arquivo raiz `main.tsx` através da rotina assíncrona do Service `runtimeConfig.ts` antes de instanciar todo o bundle do React, acabando de uma vez com as variáveis engessadas `.env` acopladas ao bundle final do Vite.
+### 3. Adaptação do Frontend para Dual-Protocol (App.tsx + CallbackPage.tsx)
+- **App.tsx:** Detecção de callback expandida para reconhecer tanto `pathname === '/callback'` (dev) quanto `hash.startsWith('#/callback?')` (Electron prod).
+- **CallbackPage.tsx:**
+  - Extração do `code` adaptada para ler de `window.location.search` (dev) ou `window.location.hash` (Electron prod).
+  - **Correção de navegação pós-login:** `window.location.replace('/#/orbit')` resolvia para `file:///C:/#/orbit`. Substituído por helper `navigateToHashRoute()` que usa `window.location.hash` + reload no protocolo `file://`.
+
+## 📁 Arquivos Modificados
+| Arquivo | Tipo de Mudança |
+|---|---|
+| `src/config/runtimeConfig.ts` | Path dinâmico para config.json |
+| `electron/main.ts` | Interceptor OAuth + onBeforeRequest |
+| `src/App.tsx` | Detecção de callback dual-protocol |
+| `src/pages/CallbackPage.tsx` | Leitura de params + navegação dual-protocol |
+| `src/pages/LoginGate.tsx` | Bump de versão para v0.0.8 |
+| `package.json` / `package-lock.json` | Bump de versão para v0.0.8 |
 
 ## 🧪 Como Testar
-1. Subir aplicação `npm run dev`.
-2. Acessar a aplicação, dar início ao login `Login with Atlassian`.
-3. Validar se não ocorre mais erro na página Callback, e se cai direto carregado com sucesso na URL da dashboard `/#/orbit`.
+1. `npm run dev` — validar que login OAuth funciona normalmente no dev.
+2. `npm run build:win` — gerar novo executável.
+3. Instalar o executável e testar:
+   - App abre sem erros de `config.json` no console.
+   - Login via Atlassian completa com sucesso.
+   - Redirect pós-login leva para a Dashboard sem erro `file:///C:/#/orbit`.
 
 ## 📌 Checklist de Qualidade
-- [x] Testado local com sucesso.
-- [x] Nenhuma credencial/secret vazada pro client/bundle do Frontend.
-- [x] OIDC provider dead code e pacotes lixo varridos da branch.
-- [x] Pipeline CD refatorado para o DB do Electron rodar local `(DATABASE_URL)`.
+- [x] Testado em dev mode (OAuth flow completo).
+- [x] Nenhuma credencial exposta no bundle do frontend.
+- [x] Compatibilidade mantida entre dev (`http://`) e produção (`file://`).
+- [x] Guard `useRef` contra double-exchange preservado.
