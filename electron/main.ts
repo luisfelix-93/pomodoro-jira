@@ -28,6 +28,28 @@ function createWindow() {
         // mainWindow.webContents.openDevTools();
     } else {
         mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+
+        // Intercept OAuth callback redirects in production.
+        // Atlassian redirects to http://localhost:5173/callback?code=...
+        // but there's no dev server running, so we catch it and reload
+        // the local index.html with the OAuth params in the hash.
+        mainWindow.webContents.session.webRequest.onBeforeRequest(
+            { urls: ['http://localhost:5173/callback*'] },
+            (details, callback) => {
+                const url = new URL(details.url);
+                const code = url.searchParams.get('code');
+                const state = url.searchParams.get('state');
+
+                if (code && mainWindow) {
+                    callback({ cancel: true });
+                    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
+                        hash: `/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state || '')}`,
+                    });
+                } else {
+                    callback({});
+                }
+            }
+        );
     }
 
     mainWindow.on('minimize', () => {
