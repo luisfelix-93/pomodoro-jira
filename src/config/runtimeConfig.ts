@@ -11,7 +11,12 @@ class RuntimeConfig {
 
   async load(): Promise<void> {
     try {
-      const response = await fetch('/config.json');
+      // In Electron production (file:// protocol), we need relative paths or proper base path
+      const configPath = import.meta.env.PROD && window.location.protocol === 'file:' 
+        ? 'config.json' // Relative to index.html in dist
+        : '/config.json'; // Root relative for dev server
+      
+      const response = await fetch(configPath);
       if (!response.ok) {
         throw new Error(`Failed to load config: ${response.statusText}`);
       }

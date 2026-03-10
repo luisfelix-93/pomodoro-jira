@@ -71,9 +71,13 @@ function App() {
   }, [timerState.start, timerState.pause, timerState.stop, timerState.mode]);
 
   // Handle OAuth callback before rendering the HashRouter app.
-  // The Atlassian server redirects to a real path `/callback`, not a hash path.
-  // We render the CallbackPage directly under a BrowserRouter in this case.
-  if (window.location.pathname === '/callback') {
+  // Dev: Atlassian redirects to /callback (real pathname).
+  // Electron production: main.ts intercepts and reloads with #/callback?code=...
+  const isOAuthCallback =
+    window.location.pathname === '/callback' ||
+    window.location.hash.startsWith('#/callback?');
+
+  if (isOAuthCallback) {
     return (
       <BrowserRouter>
         <CallbackPage />

@@ -3,6 +3,16 @@ import { useAuthStore } from '../store/useAuthStore';
 import { exchangeCodeForTokens } from '../auth/jiraAuth';
 import { runtimeConfig } from '../config/runtimeConfig';
 
+/** Navigate to a hash route, compatible with both file:// and http:// */
+function navigateToHashRoute(route: string) {
+  if (window.location.protocol === 'file:') {
+    window.location.hash = `#${route}`;
+    window.location.reload();
+  } else {
+    window.location.replace(`/#${route}`);
+  }
+}
+
 export const CallbackPage: React.FC = () => {
   const login = useAuthStore((state) => state.login);
   const setAuthError = useAuthStore((state) => state.setAuthError);
@@ -12,13 +22,22 @@ export const CallbackPage: React.FC = () => {
     if (exchanged.current) return;
     exchanged.current = true;
 
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
+    // Dev: code arrives in query string (?code=...)
+    // Electron production: code arrives in hash (#/callback?code=...)
+    let code: string | null = null;
+    const hashMatch = window.location.hash.match(/^#\/callback\?(.*)/);
+    if (hashMatch) {
+      const hashParams = new URLSearchParams(hashMatch[1]);
+      code = hashParams.get('code');
+    } else {
+      const params = new URLSearchParams(window.location.search);
+      code = params.get('code');
+    }
 
     if (!code) {
       console.error('Callback: no authorization code in URL');
       setAuthError('Authorization code not found');
-      window.location.replace('/#/');
+      navigateToHashRoute('/');
       return;
     }
 
@@ -35,12 +54,12 @@ export const CallbackPage: React.FC = () => {
         });
 
         // Redirect to HashRouter's /orbit route
-        window.location.replace('/#/orbit');
+        navigateToHashRoute('/orbit');
       })
       .catch((err) => {
         console.error('Token exchange error:', err);
         setAuthError(err.message || 'Authentication failed');
-        window.location.replace('/#/');
+        navigateToHashRoute('/');
       });
   }, [login, setAuthError]);
 
