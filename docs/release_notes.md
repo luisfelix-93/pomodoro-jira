@@ -1,19 +1,14 @@
 # 🚀 FocusApp - Release Notes
 
-## v0.0.8 — Correção do Executável em Produção
+## v0.1.0 — Calendário Semanal de Worklogs & Retry de Sincronização
 
-### 🐛 Correções de Bugs
+### ✨ Novidades
+- **Nova Visualização em Calendário**: Agora é possível gerenciar todo o histórico de horas trabalhadas através de uma nova grade semanal arrastável (área util padrão centralizada de 08:00–18:00).
+- **Criação de Worklog via Drag-and-Drop**: Arraste os seus tickets do Jira livremente para a tela de calendário, estabelecendo visualmente e rapidamente hora de início e duração do apontamento.
 
-- **Config não encontrado no executável:** O `config.json` não era localizado ao abrir o app instalado, causando erro `ERR_FILE_NOT_FOUND`. O carregamento agora usa caminhos compatíveis com o protocolo `file://` do Electron.
-
-- **Login OAuth não completava no executável:** Após autenticar na Atlassian, o redirect de volta para o app falhava silenciosamente porque o endereço de callback (`localhost:5173`) só existe em desenvolvimento. O Electron agora intercepta o retorno da Atlassian e processa a autenticação internamente.
-
-- **Tela branca após login bem-sucedido:** Mesmo quando o token era trocado com sucesso, a navegação para a Dashboard falhava com `Not allowed to load local resource: file:///C:/#/orbit`. A navegação pós-login foi adaptada para funcionar corretamente tanto no modo dev quanto no executável.
-
-### ⚙️ Detalhes Técnicos
-- Interceptor `webRequest.onBeforeRequest` no processo Electron para captura do callback OAuth.
-- Helper `navigateToHashRoute()` para navegação compatível com protocolos `http://` e `file://`.
-- Detecção de callback dual-mode no React (`pathname` para dev, `hash` para produção).
+### 🐛 Correções de Bugs e Melhorias
+- **Sincronização Resiliente de Worklogs (`FAILED`)**: O sistema agora cuida melhor de cenários com instabilidade de rede ou da própria API do Jira. A aplicação passará a fadar e apresentar visualmente um alerta indicando itens marcados na fila como "FAILED" nos históricos.
+- **Botão de Retry Embutido**: Foi adicionado uma nova chave que oferta re-tentarem processos falhos para recuperar apontamentos perdidos através de um simples "Retry".
+- **Refatorações Limpas em Controllers**: Ajustes em `worklogController.ts` integrando melhor a visualização e status de eventos com o histórico, sem impactar a fluidez visual do App.
 
 ---
-🚀 *Feito para manter o seu foco inquebrável enquanto orquestramos as tarefas pesadas no Jira para você.*
