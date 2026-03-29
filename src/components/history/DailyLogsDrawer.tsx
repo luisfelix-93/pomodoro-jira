@@ -2,6 +2,31 @@ import { format, isSameDay } from 'date-fns';
 import { X, Trash2 } from 'lucide-react';
 import { useHistoryStore } from '@/store/useHistoryStore';
 
+function getStatusBadge(log: { verificationStatus?: string; jiraWorklogId?: string }) {
+    if (log.verificationStatus === 'FAILED') {
+        return (
+            <span className="text-[10px] bg-rose-500/20 text-rose-400 px-1.5 py-0.5 rounded border border-rose-500/30">
+                Failed
+            </span>
+        );
+    }
+    if (log.verificationStatus === 'SYNCED' || log.jiraWorklogId) {
+        return (
+            <span className="text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded border border-green-500/30">
+                Synced
+            </span>
+        );
+    }
+    if (log.verificationStatus === 'PENDING') {
+        return (
+            <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/30">
+                Pending
+            </span>
+        );
+    }
+    return null;
+}
+
 interface DailyLogsDrawerProps {
     date: Date | null;
     onClose: () => void;
@@ -73,11 +98,7 @@ export function DailyLogsDrawer({ date, onClose }: DailyLogsDrawerProps) {
                                     <span className="font-mono text-orbit-orange text-sm font-bold">
                                         {log.issueKey}
                                     </span>
-                                    {log.jiraWorklogId && (
-                                        <span className="text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded border border-green-500/30">
-                                            Synced
-                                        </span>
-                                    )}
+                                    {getStatusBadge(log)}
                                 </div>
                                 <span className="text-xs text-white/40 font-mono">
                                     {format(new Date(log.startTime), 'HH:mm')}

@@ -83,6 +83,18 @@ export const jiraApi = {
   deleteWorklog: async (id: string | number) => {
       const response = await apiClient.delete(`/worklogs/${id}`);
       return response.data;
+  },
+
+  getWeeklyWorklogs: async (startDate: string, endDate: string) => {
+      const response = await apiClient.get('/worklogs', {
+          params: { startDate, endDate }
+      });
+      return response.data;
+  },
+
+  updateWorklog: async (id: string | number, payload: { durationSeconds?: number; startTime?: string; comment?: string }) => {
+      const response = await apiClient.put(`/worklogs/${id}`, payload);
+      return response.data;
   }
 };
 

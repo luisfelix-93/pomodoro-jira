@@ -5,6 +5,7 @@ import { OrbitButton } from '@/components/ui/OrbitButton';
 import { X } from 'lucide-react';
 import { useTimerStore } from '@/store/useTimerStore';
 import { useTaskStore } from '@/store/useTaskStore';
+import { useWorklogCalendarStore } from '@/store/useWorklogCalendarStore';
 import { jiraApi } from '@/services/api/jira';
 
 export function GlobalWorklogModal() {
@@ -23,6 +24,7 @@ export function GlobalWorklogModal() {
   
   const { getActiveIssue } = useTaskStore();
   const activeIssue = getActiveIssue();
+  const fetchWeek = useWorklogCalendarStore((s) => s.fetchWeek);
 
   if (!isPromptingWorklog) return null;
 
@@ -41,9 +43,10 @@ export function GlobalWorklogModal() {
                 started: new Date().toISOString()
             });
             console.log(`Saved note for ${activeIssue.key}`);
+            // Refresh calendar so the new worklog appears immediately
+            fetchWeek();
         } catch (error) {
             console.error('Failed to save worklog:', error);
-            // In a real app we'd show a toast here
         }
     }
     

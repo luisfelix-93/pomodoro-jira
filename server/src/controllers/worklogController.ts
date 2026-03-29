@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { dbRequest } from '../services/db';
 import { JiraClient } from '../services/jira';
+import { ensureFreshToken } from '../services/tokenRefresh';
 
 export class WorklogController {
   
@@ -26,18 +27,20 @@ export class WorklogController {
 
   static async list(req: Request, res: Response): Promise<void> {
     try {
-        const { month, year } = req.query;
+        const { month, year, startDate, endDate } = req.query;
         let whereClause = {};
 
-        if (month && year) {
+        if (startDate && endDate) {
+            whereClause = {
+                startTime: {
+                    gte: new Date(startDate as string),
+                    lt: new Date(endDate as string)
+                }
+            };
+        } else if (month && year) {
             const m = parseInt(month as string, 10);
             const y = parseInt(year as string, 10);
 
-            // Month in JS Date is 0-indexed, so we subtract 1 from the provided month
-            // assuming the frontend sends 1-12. If it sends 0-11, adjust accordingly.
-            // Let's assume frontend sends 0-11 based on standard JS getMonth() 
-            // WAIT, looking ahead to `date-fns`, usually we work with 0-indexed months.
-            // Let's assume the API expects 0-11 for `month`.
             const startOfMonth = new Date(y, m, 1);
             const endOfMonth = new Date(y, m + 1, 1);
 
@@ -61,18 +64,37 @@ export class WorklogController {
     }
   }
 
+  static async update(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    const { durationSeconds, startTime, comment } = req.body;
+
+    try {
+        const data: Record<string, any> = {};
+        if (durationSeconds !== undefined) data.durationSeconds = durationSeconds;
+        if (startTime !== undefined) data.startTime = new Date(startTime);
+        if (comment !== undefined) data.comment = comment;
+
+        const worklog = await dbRequest.prisma.worklog.update({
+            where: { id: id as string },
+            data
+        });
+        res.json(worklog);
+    } catch (error) {
+        console.error('Update worklog error:', error);
+        res.status(500).json({ error: 'Failed to update worklog' });
+    }
+  }
+
   static async sync(req: Request, res: Response): Promise<void> {
     try {
-        // 1. Get Config
         const config = await dbRequest.prisma.userConfig.findFirst({ orderBy: { id: 'desc' } });
         if (!config) {
             res.status(401).json({ error: 'No Jira configuration found' });
             return;
         }
 
-        // 2. Get Pending Worklogs
         const pendingLogs = await dbRequest.prisma.worklog.findMany({
-            where: { verificationStatus: 'PENDING' }
+            where: { verificationStatus: { in: ['PENDING', 'FAILED'] } }
         });
 
         if (pendingLogs.length === 0) {
@@ -80,21 +102,22 @@ export class WorklogController {
             return;
         }
 
+        // Refresh token if needed before making Jira API calls
+        const freshConfig = await ensureFreshToken(config);
+
         const jira = new JiraClient({ 
-            domain: config.jiraDomain, 
-            email: config.email, 
-            apiToken: config.apiToken,
-            accessToken: config.accessToken,
-            cloudId: config.cloudId
+            domain: freshConfig.jiraDomain, 
+            email: freshConfig.email, 
+            apiToken: freshConfig.apiToken,
+            accessToken: freshConfig.accessToken,
+            cloudId: freshConfig.cloudId
         });
 
-        // 3. Push to Jira (Sequential for now to avoid rate limits/race)
         let syncedCount = 0;
         const errors = [];
 
         for (const log of pendingLogs) {
             try {
-                // Jira requires timeSpentSeconds, comment, started
                 const response = await jira.addWorklog(
                     log.issueKey, 
                     log.durationSeconds, 
@@ -102,7 +125,6 @@ export class WorklogController {
                     log.startTime
                 );
 
-                // If successful, update local status
                 await dbRequest.prisma.worklog.update({
                     where: { id: log.id },
                     data: { 
@@ -115,10 +137,9 @@ export class WorklogController {
             } catch (err: any) {
                 console.error(`Failed to sync worklog ${log.id}:`, err?.response?.data || err.message);
                 errors.push({ id: log.id, error: err?.response?.data || err.message });
-                // Mark as FAILED or keep as PENDING? FAILED allows user to retry manually or edit.
                 await dbRequest.prisma.worklog.update({
                     where: { id: log.id },
-                    data: { verificationStatus: 'FAILED' } // Or keep PENDING to retry automatically
+                    data: { verificationStatus: 'FAILED' }
                 });
             }
         }

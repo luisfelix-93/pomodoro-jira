@@ -105,3 +105,13 @@
 - [x] Remove `react-oidc-context` from `package.json` (`npm uninstall react-oidc-context`)
 - [x] Delete deprecated `src/auth/JiraAuthProvider.tsx`
 
+## Phase 12: Worklog Calendar Feature
+- [x] Create basic React Router setup for `WeeklyWorklogPage`
+- [x] Implement `useWorklogStore` to handle weekly state and optimistic updates
+- [x] Build left panel: Fetch and display assigned Jira tickets (assigned to currentUser)
+- [x] Build right panel: Weekly calendar grid (Monday to Friday, 08:00 - 18:00)
+- [x] Integrate Drag and Drop functionality (tickets from left to right calendar slots)
+- [x] Implement slot clicking to add worklog via quick modal
+- [x] Add Jira API service methods (GET tickets, POST/PUT/DELETE worklogs)
+- [x] Fetch and prepopulate existing weekly worklog blocks on calendar load
+- [ ] Refine UX with resizing timeblocks, error handling, and toast notifications
