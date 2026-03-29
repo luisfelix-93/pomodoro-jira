@@ -28,7 +28,7 @@ class RuntimeConfig {
         VITE_JIRA_CLIENT_ID: import.meta.env.VITE_JIRA_CLIENT_ID || '',
         VITE_JIRA_AUTH_URL: import.meta.env.VITE_JIRA_AUTH_URL || 'https://auth.atlassian.com/authorize',
         VITE_JIRA_TOKEN_URL: import.meta.env.VITE_JIRA_TOKEN_URL || 'https://auth.atlassian.com/oauth/token',
-        VITE_JIRA_SCOPES: import.meta.env.VITE_JIRA_SCOPES || 'read:jira-work manage:jira-project read:jira-user offline_access',
+        VITE_JIRA_SCOPES: import.meta.env.VITE_JIRA_SCOPES || 'read:jira-work write:jira-work manage:jira-project read:jira-user offline_access',
         VITE_JIRA_CALLBACK_URL: import.meta.env.VITE_JIRA_CALLBACK_URL || 'http://localhost:5173/callback',
       };
     }

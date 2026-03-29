@@ -34,3 +34,14 @@ export interface WorklogDraft {
   memo: string;
   status: 'draft' | 'synced' | 'discarded';
 }
+
+export interface CalendarWorklogEntry {
+  id: string | number;
+  issueKey: string;
+  issueSummary: string;
+  startTime: string;
+  durationSeconds: number;
+  comment: string;
+  jiraWorklogId?: string;
+  verificationStatus?: string;
+}

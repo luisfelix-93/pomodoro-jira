@@ -5,7 +5,7 @@ import { GlassPanel } from '@/components/ui/GlassPanel';
 import { OrbitButton } from '@/components/ui/OrbitButton';
 import { useTaskStore } from '@/store/useTaskStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import { RefreshCw, Play, History as HistoryIcon } from 'lucide-react';
+import { RefreshCw, Play, History as HistoryIcon, CalendarDays } from 'lucide-react';
 
 export function TaskOrbit() {
   const navigate = useNavigate();
@@ -31,6 +31,10 @@ export function TaskOrbit() {
             Orbit Command
         </h1>
         <div className="flex gap-4">
+             <OrbitButton size="sm" variant="secondary" onClick={() => navigate('/worklog')}>
+                <CalendarDays className="w-4 h-4 mr-2" />
+                Worklog
+             </OrbitButton>
              <OrbitButton size="sm" variant="secondary" onClick={() => navigate('/ledger')}>
                 <HistoryIcon className="w-4 h-4 mr-2" />
                 History

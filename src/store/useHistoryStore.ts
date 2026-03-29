@@ -8,6 +8,7 @@ interface Worklog {
     durationSeconds: number;
     startTime: string; // ISO
     jiraWorklogId?: string;
+    verificationStatus?: string;
 }
 
 interface HistoryState {
