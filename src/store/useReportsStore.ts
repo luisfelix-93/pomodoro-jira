@@ -181,7 +181,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
         ? entries.filter((e) => isSameDay(parseISO(e.startTime), selectedDate))
         : entries.filter((e) => {
             const d = parseISO(e.startTime);
-            return d >= weekStart && d <= addDays(weekStart, 4);
+            return d >= weekStart && d < addDays(weekStart, 5);
           });
 
     const map = new Map<string, TicketAggregate>();
