@@ -6,6 +6,7 @@ import { TaskOrbit } from '@/pages/TaskOrbit';
 import { FocusVoid } from '@/pages/FocusVoid';
 import { LogLedger } from '@/pages/LogLedger';
 import { WeeklyWorklogPage } from '@/pages/WeeklyWorklogPage';
+import { ReportsPage } from '@/pages/ReportsPage';
 import { MiniTimer } from '@/pages/MiniTimer';
 import { CallbackPage } from '@/pages/CallbackPage';
 import { GlobalWorklogModal } from '@/components/ui/GlobalWorklogModal';
@@ -57,8 +58,10 @@ function App() {
         });
 
         const cleanupMinimize = window.electron.onWindowMinimized(() => {
-            // Only show mini timer if a timer is active (running or paused but not idle)
-            const isTimerActive = timerState.mode !== 'IDLE';
+            // Only show mini timer if a timer is genuinely active:
+            // either running, or paused mid-session (timeElapsed > 0 and not IDLE)
+            const isTimerActive = timerState.isRunning ||
+              (timerState.mode !== 'IDLE' && timerState.timeElapsed > 0);
             if (isTimerActive && window.electron) {
                 window.electron.createMiniWindow();
             }
@@ -69,7 +72,7 @@ function App() {
             cleanupMinimize();
         };
     }
-  }, [timerState.start, timerState.pause, timerState.stop, timerState.mode]);
+  }, [timerState.start, timerState.pause, timerState.stop, timerState.mode, timerState.isRunning, timerState.timeElapsed]);
 
   // Handle OAuth callback before rendering the HashRouter app.
   // Dev: Atlassian redirects to /callback (real pathname).
@@ -94,6 +97,7 @@ function App() {
         <Route path="/focus" element={<FocusVoid />} />
         <Route path="/ledger" element={<LogLedger />} />
         <Route path="/worklog" element={<WeeklyWorklogPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
         <Route path="/mini" element={<MiniTimer />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -31,11 +31,11 @@ const getDurations = (focusDurationMinutes: number): Record<TimerMode, number> =
 });
 
 export const useTimerStore = create<TimerState>((set, get) => ({
-  mode: 'FOCUS',
+  mode: 'IDLE',
   focusDuration: 25,
-  timeLeft: 25 * 60,
+  timeLeft: 0,
   timeElapsed: 0,
-  totalDuration: 25 * 60,
+  totalDuration: 0,
   isRunning: false,
   lastTickTime: null,
   isPromptingWorklog: false,
@@ -44,11 +44,11 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   pause: () => set({ isRunning: false, lastTickTime: null }),
   
   stop: () => {
-     const state = get();
-     const durations = getDurations(state.focusDuration);
      set({ 
+        mode: 'IDLE',
         isRunning: false, 
-        timeLeft: durations[state.mode],
+        timeLeft: 0,
+        totalDuration: 0,
         timeElapsed: 0,
         lastTickTime: null
      });

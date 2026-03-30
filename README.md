@@ -8,6 +8,7 @@ A desktop productivity tool integrating the Pomodoro technique with Jira time tr
 - **Focus Void**: Extended stopwatch mode for uninterrupted, open-ended work sessions.
 - **Mini Timer Window**: Keep track of your active tasks with a non-intrusive desktop widget.
 - **Weekly Calendar View**: Manage your worklogs effortlessly using a 24-hour scrollable grid with an intuitive drag-and-drop mechanics for your Jira tickets.
+- **Worklog Reports Dashboard**: View daily and weekly summaries of your logged hours with charts, breakdowns, and exportable text for daily meetings.
 - **Jira Integration**: Syncing worklogs directly to Jira issues with robust **Atlassian OAuth 2.0** secure authentication.
 - **Task Management**: View and manage your Jira tasks within the app.
 - **Cross-Platform**: Available for Windows, macOS, and Linux.
@@ -36,6 +37,7 @@ You can download the latest version of the application from the [Releases](https
 If you want to run the application from source or contribute to development:
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/luisf/pomerode-jira.git
    cd pomerode-jira
@@ -48,15 +50,16 @@ If you want to run the application from source or contribute to development:
      cp public/config.example.json public/config.json
      ```
    - Update `public/config.json` with your Jira OAuth App credentials (specifically the `VITE_JIRA_CLIENT_ID`).
-   > *Note: For the backend proxy token exchange to work locally, ensure you also have `.env` with `CLIENT_ID` and `CLIENT_SECRET` under the `server/` directory.*
+     > _Note: For the backend proxy token exchange to work locally, ensure you also have `.env` with `CLIENT_ID` and `CLIENT_SECRET` under the `server/` directory._
 
-4. **Install dependencies**:
+3. **Install dependencies**:
+
    ```bash
    npm install
    cd server && npm install && cd ..
    ```
 
-5. **Run in development mode**:
+4. **Run in development mode**:
    ```bash
    npm run dev
    ```
@@ -67,11 +70,13 @@ If you want to run the application from source or contribute to development:
 To create a distributable installer for your platform:
 
 - **Windows**:
+
   ```bash
   npm run build:win
   ```
 
 - **macOS**:
+
   ```bash
   npm run build:mac
   ```
