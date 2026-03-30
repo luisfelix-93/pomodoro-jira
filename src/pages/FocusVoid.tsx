@@ -51,8 +51,8 @@ export function FocusVoid() {
         </TimerRing>
         
         <div className="flex flex-col items-center gap-6">
-           {/* Mode Selector - Only visible when timer hasn't started */}
-           {!isRunning && (mode !== 'STOPWATCH' && totalDuration === timeLeft || mode === 'STOPWATCH' && timeElapsed === 0) && (
+           {/* Mode Selector - Visible when timer hasn't started or is in IDLE */}
+           {!isRunning && (mode === 'IDLE' || mode !== 'STOPWATCH' && totalDuration === timeLeft || mode === 'STOPWATCH' && timeElapsed === 0) && (
               <div className="flex flex-col items-center gap-4 mb-2">
                   <div className="flex bg-black/40 border border-white/10 rounded-full p-1">
                      <button 
@@ -87,8 +87,8 @@ export function FocusVoid() {
 
            <div className="flex items-center gap-6">
                {!isRunning ? (
-                  <OrbitButton size="lg" onClick={start} className="pl-8 pr-6">
-                    <Play className="w-6 h-6 fill-current" /> RESUME
+                  <OrbitButton size="lg" onClick={start} className="pl-8 pr-6" disabled={mode === 'IDLE'}>
+                    <Play className="w-6 h-6 fill-current" /> {timeElapsed === 0 ? 'START' : 'RESUME'}
                   </OrbitButton>
                ) : (
                   <OrbitButton size="lg" variant="secondary" onClick={pause}>

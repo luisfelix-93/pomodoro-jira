@@ -58,8 +58,10 @@ function App() {
         });
 
         const cleanupMinimize = window.electron.onWindowMinimized(() => {
-            // Only show mini timer if a timer is active (running or paused but not idle)
-            const isTimerActive = timerState.mode !== 'IDLE';
+            // Only show mini timer if a timer is genuinely active:
+            // either running, or paused mid-session (timeElapsed > 0 and not IDLE)
+            const isTimerActive = timerState.isRunning ||
+              (timerState.mode !== 'IDLE' && timerState.timeElapsed > 0);
             if (isTimerActive && window.electron) {
                 window.electron.createMiniWindow();
             }
@@ -70,7 +72,7 @@ function App() {
             cleanupMinimize();
         };
     }
-  }, [timerState.start, timerState.pause, timerState.stop, timerState.mode]);
+  }, [timerState.start, timerState.pause, timerState.stop, timerState.mode, timerState.isRunning, timerState.timeElapsed]);
 
   // Handle OAuth callback before rendering the HashRouter app.
   // Dev: Atlassian redirects to /callback (real pathname).

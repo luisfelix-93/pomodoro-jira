@@ -126,3 +126,26 @@
 - [x] Implementar exportação formatada (clipboard) do resumo diário
 - [x] Adicionar filtros opcionais por projeto e ticket (Skip por agora)
 - [x] Atualizar side navigator para incluir o atalho do dashboard
+
+## Phase 14: Bug Fix — Mini Timer Visibility (PRD: `docs/PRD-mini-timer-visibility-fix.md`)
+
+### Causa Raiz
+O `useTimerStore` inicializa `mode` como `'FOCUS'` em vez de `'IDLE'`, e a condição em `App.tsx` que decide criar o Mini Timer (`mode !== 'IDLE'`) retorna `true` mesmo sem nenhuma sessão iniciada.
+
+### Tarefas
+
+- [x] **[store]** Alterar estado inicial de `mode` de `'FOCUS'` para `'IDLE'` em `src/store/useTimerStore.ts`
+- [x] **[store]** Verificar se a função `stop()` também reseta `mode` para `'IDLE'` (ao invés de preservar o modo atual)
+- [x] **[App.tsx]** Atualizar condição `isTimerActive` para:
+  ```typescript
+  const isTimerActive = timerState.isRunning ||
+    (timerState.mode !== 'IDLE' && timerState.timeElapsed > 0);
+  ```
+- [x] **[FocusVoid.tsx]** Verificar se a tela de timer lida corretamente com `mode: 'IDLE'` ao ser aberta (ajustar seletor de modo se necessário)
+- [x] **[Testes Manuais]** Validar os 6 critérios de aceitação do PRD:
+  - [x] AC-01: Minimizar sem timer → nenhum widget
+  - [x] AC-02: Minimizar com timer rodando → widget aparece
+  - [x] AC-03: Minimizar com timer pausado → widget aparece
+  - [x] AC-04: Restaurar janela principal → widget some
+  - [x] AC-05: Parar timer e minimizar → nenhum widget
+  - [x] AC-06: Estado inicial `IDLE` nunca exibe Mini Timer
