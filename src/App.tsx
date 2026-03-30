@@ -6,6 +6,7 @@ import { TaskOrbit } from '@/pages/TaskOrbit';
 import { FocusVoid } from '@/pages/FocusVoid';
 import { LogLedger } from '@/pages/LogLedger';
 import { WeeklyWorklogPage } from '@/pages/WeeklyWorklogPage';
+import { ReportsPage } from '@/pages/ReportsPage';
 import { MiniTimer } from '@/pages/MiniTimer';
 import { CallbackPage } from '@/pages/CallbackPage';
 import { GlobalWorklogModal } from '@/components/ui/GlobalWorklogModal';
@@ -94,6 +95,7 @@ function App() {
         <Route path="/focus" element={<FocusVoid />} />
         <Route path="/ledger" element={<LogLedger />} />
         <Route path="/worklog" element={<WeeklyWorklogPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
         <Route path="/mini" element={<MiniTimer />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

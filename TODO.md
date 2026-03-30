@@ -115,3 +115,14 @@
 - [x] Add Jira API service methods (GET tickets, POST/PUT/DELETE worklogs)
 - [x] Fetch and prepopulate existing weekly worklog blocks on calendar load
 - [ ] Refine UX with resizing timeblocks, error handling, and toast notifications
+
+## Phase 13: Reports Dashboard
+- [x] Criar arquivo para Rota `/reports`
+- [x] Desenvolver Componente Hub `ReportsPage.tsx`
+- [x] Criar componentes auxiliares: `DateSelector.tsx`, `WorklogList.tsx` e `WeeklyChart.tsx`
+- [x] Implementar visualização do dia em `DailyReport.tsx`
+- [x] Implementar agregado semanal com gráfico de barras em `WeeklyReport.tsx`
+- [x] Desenvolver lógica de navegação entre períodos (dia/semana)
+- [x] Implementar exportação formatada (clipboard) do resumo diário
+- [x] Adicionar filtros opcionais por projeto e ticket (Skip por agora)
+- [x] Atualizar side navigator para incluir o atalho do dashboard
