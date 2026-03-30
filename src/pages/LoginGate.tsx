@@ -47,7 +47,7 @@ export function LoginGate() {
             {isLoading ? 'Checking session...' : 'Login with Atlassian'}
           </OrbitButton>
         </div>
-      </GlassPanel>+
+      </GlassPanel>
       
       <div className="absolute bottom-4 flex flex-col items-center gap-1 text-white/20 text-xs hover:text-white/40 transition-colors">
         <span>v0.0.11 • FocusApp</span>
